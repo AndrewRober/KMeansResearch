@@ -36,8 +36,10 @@
             ClearBtn = new Button();
             SaveBtn = new Button();
             LoadBtn = new Button();
+            dataGridView1 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
             // pictureBox1
@@ -70,9 +72,9 @@
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblCurrentMode });
-            statusStrip1.Location = new Point(0, 657);
+            statusStrip1.Location = new Point(0, 679);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(917, 22);
+            statusStrip1.Size = new Size(1311, 22);
             statusStrip1.TabIndex = 3;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -111,11 +113,22 @@
             LoadBtn.UseVisualStyleBackColor = true;
             LoadBtn.Click += LoadBtn_Click;
             // 
+            // dataGridView1
+            // 
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Location = new Point(618, 12);
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.RowTemplate.Height = 29;
+            dataGridView1.Size = new Size(681, 446);
+            dataGridView1.TabIndex = 7;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(917, 679);
+            ClientSize = new Size(1311, 701);
+            Controls.Add(dataGridView1);
             Controls.Add(LoadBtn);
             Controls.Add(SaveBtn);
             Controls.Add(ClearBtn);
@@ -128,6 +141,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -142,5 +156,6 @@
         private Button ClearBtn;
         private Button SaveBtn;
         private Button LoadBtn;
+        private DataGridView dataGridView1;
     }
 }
