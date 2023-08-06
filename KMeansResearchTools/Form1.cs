@@ -10,14 +10,16 @@ namespace KMeansResearchTools
         List<Color> colors = new()
         {
             Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple,
-            Color.Orange, Color.Pink, Color.Brown, Color.Gray, Color.Cyan,
-            Color.Magenta, Color.Lime, Color.Maroon, Color.Navy, Color.Olive,
-            Color.Teal, Color.Azure, Color.Gold, Color.Silver, Color.RosyBrown
+            Color.Orange, Color.Pink, Color.Brown, Color.Cyan,
+            Color.Magenta, Color.Lime, Color.Navy, 
+            Color.Teal, Color.RosyBrown
         };
         private Random rand;
         private ToolTip toolTip;
         private bool isAddingPoints;
         private bool isAddingCentroids;
+        private bool showConnections = true;
+        private bool showGrid = true;
 
         public Form1()
         {
@@ -48,6 +50,15 @@ namespace KMeansResearchTools
         {
             Graphics g = e.Graphics;
 
+            if (showConnections)
+            {
+                foreach (var point in points.Where(p => p.Centroid != null))
+                {
+                    var pen = new Pen(Color.LightGray, 0.5f);
+                    g.DrawLine(pen, point.Point, point.Centroid.Point);
+                }
+            }
+
             int padding = 20;  // Amount of padding to add
             int arrowSize = 10;  // Size of the arrow heads
             int axisLength = Math.Min(pictureBox1.Width, pictureBox1.Height) - 2 * padding;  // Ensure the axis are of the same length
@@ -67,14 +78,18 @@ namespace KMeansResearchTools
             g.DrawLine(Pens.Black, yEnd, new Point(yEnd.X - arrowSize, yEnd.Y + arrowSize));
             g.DrawLine(Pens.Black, yEnd, new Point(yEnd.X + arrowSize, yEnd.Y + arrowSize));
 
-            // Draw gridlines
-            Pen gridPen = new Pen(Color.LightGray, 1);
-            for (int i = 10; i < 100; i += 10)
+
+            if (showGrid)
             {
-                int x = i * axisLength / 100 + padding;
-                int y = pictureBox1.Height - i * axisLength / 100 - padding;
-                g.DrawLine(gridPen, x, pictureBox1.Height - padding, x, pictureBox1.Height - padding - axisLength); // vertical line
-                g.DrawLine(gridPen, padding, y, padding + axisLength, y); // horizontal line
+                // Draw gridlines
+                Pen gridPen = new Pen(Color.LightGray, 1);
+                for (int i = 10; i < 100; i += 10)
+                {
+                    int x = i * axisLength / 100 + padding;
+                    int y = pictureBox1.Height - i * axisLength / 100 - padding;
+                    g.DrawLine(gridPen, x, pictureBox1.Height - padding, x, pictureBox1.Height - padding - axisLength); // vertical line
+                    g.DrawLine(gridPen, padding, y, padding + axisLength, y); // horizontal line
+                }
             }
 
             // Draw scale with padding
@@ -293,13 +308,63 @@ namespace KMeansResearchTools
             foreach (var point in points)
             {
                 dataGridView1.Rows.Add("Point",
-                    TranslatePoint(point.Point).X, TranslatePoint(point.Point).Y, point.DistanceToCentroid);
+                    TranslatePoint(point.Point).X, TranslatePoint(point.Point).Y,
+                    point.Centroid != null ? (float)Math.Sqrt(Math.Pow(point.Point.X - point.Centroid.Point.X, 2) + Math.Pow(point.Point.Y - point.Centroid.Point.Y, 2)) : string.Empty);
                 if (point.Centroid != null)
                 {
                     dataGridView1.Rows[index].DefaultCellStyle.BackColor = point.Centroid.Color;
                 }
                 index++;
             }
+        }
+
+        private void ShowGridBtn_Click(object sender, EventArgs e)
+        {
+            showGrid = !showGrid;
+            pictureBox1.Invalidate();
+        }
+
+        private void ShowConnectionsBtn_Click(object sender, EventArgs e)
+        {
+            showConnections = !showConnections;
+            pictureBox1.Invalidate();
+        }
+
+        private void AssociatePointsBtn_Click(object sender, EventArgs e)
+        {
+            Utilities.AssociateToClosestCentroid(points, centroids);
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void AddNewCentroidBtn_Click(object sender, EventArgs e)
+        {
+            if (!centroids.Any())
+            {
+                centroids.Add(new CentroidData()
+                {
+                    Color = colors[rand.Next(colors.Count)],
+                    Point = points[rand.Next(points.Count)].Point
+                });
+            }
+            else
+            {
+                var furthestPoint = Utilities.GetFurthestPointFromCentroids(centroids, points);
+                centroids.Add(new CentroidData()
+                {
+                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[rand.Next(colors.Count - centroids.Count)],
+                    Point = furthestPoint.Point
+                });
+            }
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void OptimizeCentroidPositionBtn_Click(object sender, EventArgs e)
+        {
+            Utilities.OptimizeCentroidPosition(points, centroids);
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
         }
     }
 
@@ -308,7 +373,6 @@ namespace KMeansResearchTools
         public PointF Point { get; set; }
         public Color Color { get; set; }
         public CentroidData Centroid { get; set; }
-        public float DistanceToCentroid => (float)Math.Sqrt(Math.Pow(Point.X - Centroid.Point.X, 2) + Math.Pow(Point.Y - Centroid.Point.Y, 2));
     }
 
     public class CentroidData
@@ -319,6 +383,27 @@ namespace KMeansResearchTools
 
     public static class Utilities
     {
+        public static void AssociateToClosestCentroid(List<PointData> points, List<CentroidData> centroids)
+        {
+            foreach (var point in points)
+            {
+                CentroidData closestCentroid = null;
+                double minDistance = double.MaxValue;
+
+                foreach (var centroid in centroids)
+                {
+                    double distance = CalculateEuclideanDistance(point.Point, centroid.Point);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        closestCentroid = centroid;
+                    }
+                }
+
+                point.Centroid = closestCentroid;
+            }
+        }
+
         public static double CalculateEuclideanDistance(PointF point1, PointF point2)
         {
             return Math.Sqrt(Math.Pow(point2.X - point1.X, 2) + Math.Pow(point2.Y - point1.Y, 2));
@@ -354,6 +439,45 @@ namespace KMeansResearchTools
             }
 
             return furthestPoint;
+        }
+
+        public static PointData GetFurthestPointFromCentroids(List<CentroidData> centroids, List<PointData> points)
+        {
+            PointData furthestPoint = null;
+            double maxDistance = 0;
+
+            foreach (var point in points)
+            {
+                double minDistanceToCentroid = double.MaxValue;
+
+                // Calculate the distance to the nearest centroid
+                foreach (var centroid in centroids)
+                {
+                    double distance = CalculateEuclideanDistance(point.Point, centroid.Point);
+                    if (distance < minDistanceToCentroid)
+                    {
+                        minDistanceToCentroid = distance;
+                    }
+                }
+
+                // If this point is further than our current furthest, update maxDistance and furthestPoint
+                if (minDistanceToCentroid > maxDistance)
+                {
+                    maxDistance = minDistanceToCentroid;
+                    furthestPoint = point;
+                }
+            }
+
+            return furthestPoint;
+        }
+
+        public static void OptimizeCentroidPosition(List<PointData> points, List<CentroidData> centroids)
+        {
+            foreach (var centroid in centroids)
+            {
+                var pointsForCentroid = points.Where(p => p.Centroid == centroid).ToList();
+                centroid.Point = CalculateCentroid(pointsForCentroid.Select(p => p.Point).ToList());
+            }
         }
     }
 }

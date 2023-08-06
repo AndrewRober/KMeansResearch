@@ -37,6 +37,11 @@
             SaveBtn = new Button();
             LoadBtn = new Button();
             dataGridView1 = new DataGridView();
+            ShowGridBtn = new Button();
+            ShowConnectionsBtn = new Button();
+            AssociatePointsBtn = new Button();
+            AddNewCentroidBtn = new Button();
+            OptimizeCentroidPositionBtn = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -72,7 +77,7 @@
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblCurrentMode });
-            statusStrip1.Location = new Point(0, 679);
+            statusStrip1.Location = new Point(0, 691);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1311, 22);
             statusStrip1.TabIndex = 3;
@@ -120,14 +125,69 @@
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
             dataGridView1.RowTemplate.Height = 29;
-            dataGridView1.Size = new Size(681, 446);
+            dataGridView1.Size = new Size(681, 600);
             dataGridView1.TabIndex = 7;
+            // 
+            // ShowGridBtn
+            // 
+            ShowGridBtn.Location = new Point(12, 653);
+            ShowGridBtn.Name = "ShowGridBtn";
+            ShowGridBtn.Size = new Size(134, 29);
+            ShowGridBtn.TabIndex = 8;
+            ShowGridBtn.Text = "Show/Hide Grid";
+            ShowGridBtn.UseVisualStyleBackColor = true;
+            ShowGridBtn.Click += ShowGridBtn_Click;
+            // 
+            // ShowConnectionsBtn
+            // 
+            ShowConnectionsBtn.Location = new Point(152, 653);
+            ShowConnectionsBtn.Name = "ShowConnectionsBtn";
+            ShowConnectionsBtn.Size = new Size(174, 29);
+            ShowConnectionsBtn.TabIndex = 9;
+            ShowConnectionsBtn.Text = "Show/Hide Centroids";
+            ShowConnectionsBtn.UseVisualStyleBackColor = true;
+            ShowConnectionsBtn.Click += ShowConnectionsBtn_Click;
+            // 
+            // AssociatePointsBtn
+            // 
+            AssociatePointsBtn.Location = new Point(618, 618);
+            AssociatePointsBtn.Name = "AssociatePointsBtn";
+            AssociatePointsBtn.Size = new Size(129, 29);
+            AssociatePointsBtn.TabIndex = 10;
+            AssociatePointsBtn.Text = "Associate points";
+            AssociatePointsBtn.UseVisualStyleBackColor = true;
+            AssociatePointsBtn.Click += AssociatePointsBtn_Click;
+            // 
+            // AddNewCentroidBtn
+            // 
+            AddNewCentroidBtn.Location = new Point(753, 618);
+            AddNewCentroidBtn.Name = "AddNewCentroidBtn";
+            AddNewCentroidBtn.Size = new Size(204, 29);
+            AddNewCentroidBtn.TabIndex = 11;
+            AddNewCentroidBtn.Text = "New Centroid (Kmean++)";
+            AddNewCentroidBtn.UseVisualStyleBackColor = true;
+            AddNewCentroidBtn.Click += AddNewCentroidBtn_Click;
+            // 
+            // OptimizeCentroidPositionBtn
+            // 
+            OptimizeCentroidPositionBtn.Location = new Point(963, 618);
+            OptimizeCentroidPositionBtn.Name = "OptimizeCentroidPositionBtn";
+            OptimizeCentroidPositionBtn.Size = new Size(208, 29);
+            OptimizeCentroidPositionBtn.TabIndex = 12;
+            OptimizeCentroidPositionBtn.Text = "Optimize Centroid Position";
+            OptimizeCentroidPositionBtn.UseVisualStyleBackColor = true;
+            OptimizeCentroidPositionBtn.Click += OptimizeCentroidPositionBtn_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1311, 701);
+            ClientSize = new Size(1311, 713);
+            Controls.Add(OptimizeCentroidPositionBtn);
+            Controls.Add(AddNewCentroidBtn);
+            Controls.Add(AssociatePointsBtn);
+            Controls.Add(ShowConnectionsBtn);
+            Controls.Add(ShowGridBtn);
             Controls.Add(dataGridView1);
             Controls.Add(LoadBtn);
             Controls.Add(SaveBtn);
@@ -157,5 +217,10 @@
         private Button SaveBtn;
         private Button LoadBtn;
         private DataGridView dataGridView1;
+        private Button ShowGridBtn;
+        private Button ShowConnectionsBtn;
+        private Button AssociatePointsBtn;
+        private Button AddNewCentroidBtn;
+        private Button OptimizeCentroidPositionBtn;
     }
 }
