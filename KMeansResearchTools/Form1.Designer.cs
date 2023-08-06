@@ -42,9 +42,11 @@
             AssociatePointsBtn = new Button();
             AddNewCentroidBtn = new Button();
             OptimizeCentroidPositionBtn = new Button();
+            dataGridView2 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             SuspendLayout();
             // 
             // pictureBox1
@@ -125,7 +127,7 @@
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
             dataGridView1.RowTemplate.Height = 29;
-            dataGridView1.Size = new Size(681, 600);
+            dataGridView1.Size = new Size(681, 370);
             dataGridView1.TabIndex = 7;
             // 
             // ShowGridBtn
@@ -178,11 +180,22 @@
             OptimizeCentroidPositionBtn.UseVisualStyleBackColor = true;
             OptimizeCentroidPositionBtn.Click += OptimizeCentroidPositionBtn_Click;
             // 
+            // dataGridView2
+            // 
+            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView2.Location = new Point(618, 388);
+            dataGridView2.Name = "dataGridView2";
+            dataGridView2.RowHeadersWidth = 51;
+            dataGridView2.RowTemplate.Height = 29;
+            dataGridView2.Size = new Size(681, 224);
+            dataGridView2.TabIndex = 13;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1311, 713);
+            Controls.Add(dataGridView2);
             Controls.Add(OptimizeCentroidPositionBtn);
             Controls.Add(AddNewCentroidBtn);
             Controls.Add(AssociatePointsBtn);
@@ -202,6 +215,7 @@
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -222,5 +236,6 @@
         private Button AssociatePointsBtn;
         private Button AddNewCentroidBtn;
         private Button OptimizeCentroidPositionBtn;
+        private DataGridView dataGridView2;
     }
 }

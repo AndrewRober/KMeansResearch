@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Text.Json;
 
 namespace KMeansResearchTools
@@ -11,7 +11,7 @@ namespace KMeansResearchTools
         {
             Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple,
             Color.Orange, Color.Pink, Color.Brown, Color.Cyan,
-            Color.Magenta, Color.Lime, Color.Navy, 
+            Color.Magenta, Color.Lime, Color.Navy,
             Color.Teal, Color.RosyBrown
         };
         private Random rand;
@@ -30,10 +30,15 @@ namespace KMeansResearchTools
             rand = new Random();
             toolTip = new ToolTip();
 
-            dataGridView1.Columns.Add("EntryType", "EntryType");
             dataGridView1.Columns.Add("X", "X");
             dataGridView1.Columns.Add("Y", "Y");
             dataGridView1.Columns.Add("DistancetoC", "Distance to C");
+            dataGridView1.Columns.Add("DistancetoCSquared", "Dc²");
+
+
+            dataGridView2.Columns.Add("X", "X");
+            dataGridView2.Columns.Add("Y", "Y");
+            dataGridView2.Columns.Add("DistancetoC", "Σ d(Pi, C)²");
 
             pictureBox1.Paint += pictureBox1_Paint;
             pictureBox1.MouseClick += pictureBox1_MouseClick;
@@ -118,14 +123,16 @@ namespace KMeansResearchTools
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
             // Translate the mouse coordinates
-            PointF translatedPoint = TranslatePoint(new PointF(e.X, e.Y));
+            PointF translatedPoint = Utilities.TranslatePoint(new PointF(e.X, e.Y),
+                pictureBox1.Width, pictureBox1.Height);
 
             // Round the translated coordinates to the nearest whole number
             int x = (int)Math.Round(translatedPoint.X);
             int y = (int)Math.Round(translatedPoint.Y);
 
             // Reverse translate the rounded point
-            PointF point = ReverseTranslatePoint(new PointF(x, y));
+            PointF point = Utilities.ReverseTranslatePoint(new PointF(x, y),
+                pictureBox1.Width, pictureBox1.Height);
 
             if (e.Button == MouseButtons.Left)
             {
@@ -184,7 +191,7 @@ namespace KMeansResearchTools
             {
                 if (Math.Sqrt(Math.Pow(point.Point.X - e.X, 2) + Math.Pow(point.Point.Y - e.Y, 2)) < 10)
                 {
-                    var p = TranslatePoint(point.Point);
+                    var p = Utilities.TranslatePoint(point.Point, pictureBox1.Width, pictureBox1.Height);
                     tooltipText = $"Point: ({p.X:F}, {p.Y:F})";
                     break;
                 }
@@ -194,7 +201,7 @@ namespace KMeansResearchTools
             {
                 if (Math.Sqrt(Math.Pow(centroid.Point.X - e.X, 2) + Math.Pow(centroid.Point.Y - e.Y, 2)) < 10)
                 {
-                    var c = TranslatePoint(centroid.Point);
+                    var c = Utilities.TranslatePoint(centroid.Point, pictureBox1.Width, pictureBox1.Height);
                     tooltipText = $"Centroid: ({c.X:F}, {c.Y:F})";
                     break;
                 }
@@ -206,30 +213,6 @@ namespace KMeansResearchTools
             toolTip.SetToolTip(pictureBox1, tooltipText);
         }
 
-        private PointF TranslatePoint(PointF originalPoint)
-        {
-            int padding = 20;
-            int axisLength = Math.Min(pictureBox1.Width, pictureBox1.Height) - 2 * padding;  // Ensure the axis are of the same length
-
-            // Translate and scale points relative to the new origin with padding and invert Y-axis
-            float x = (originalPoint.X - padding) * 100 / axisLength;
-            float y = 100 - (originalPoint.Y - padding) * 100 / axisLength;
-
-            // Round the translated values to the nearest whole number
-            return new PointF((float)Math.Round(x), (float)Math.Round(y));
-        }
-
-        private PointF ReverseTranslatePoint(PointF translatedPoint)
-        {
-            int padding = 20;
-            int axisLength = Math.Min(pictureBox1.Width, pictureBox1.Height) - 2 * padding;  // Ensure the axis are of the same length
-
-            // Reverse translate and scale points relative to the new origin with padding and invert Y-axis
-            float x = (translatedPoint.X * axisLength / 100) + padding;
-            float y = padding + (100 - translatedPoint.Y) * axisLength / 100;
-
-            return new PointF(x, y);
-        }
 
         private void ClearBtn_Click(object sender, EventArgs e)
         {
@@ -292,27 +275,36 @@ namespace KMeansResearchTools
         {
             // Clear existing rows
             dataGridView1.Rows.Clear();
+            dataGridView2.Rows.Clear();
 
             int index = 0;
 
             // Add rows for centroids
             foreach (var centroid in centroids)
             {
-                dataGridView1.Rows.Add("Centroid",
-                    TranslatePoint(centroid.Point).X, TranslatePoint(centroid.Point).Y);
-                dataGridView1.Rows[index].DefaultCellStyle.BackColor = centroid.Color;
+                var c = Utilities.TranslatePoint(centroid.Point, pictureBox1.Width, pictureBox1.Height);
+                dataGridView2.Rows.Add(c.X, c.Y, Utilities.CalculateWCSS(centroid, points, pictureBox1.Width, pictureBox1.Height));
+                dataGridView2.Rows[index].DefaultCellStyle.BackColor = centroid.Color;
                 index++;
             }
+
+            index = 0;
 
             // Add rows for points
             foreach (var point in points)
             {
-                dataGridView1.Rows.Add("Point",
-                    TranslatePoint(point.Point).X, TranslatePoint(point.Point).Y,
-                    point.Centroid != null ? (float)Math.Sqrt(Math.Pow(point.Point.X - point.Centroid.Point.X, 2) + Math.Pow(point.Point.Y - point.Centroid.Point.Y, 2)) : string.Empty);
+                var p = Utilities.TranslatePoint(point.Point, pictureBox1.Width, pictureBox1.Height);
+
                 if (point.Centroid != null)
                 {
+                    var c = Utilities.TranslatePoint(point.Centroid.Point, pictureBox1.Width, pictureBox1.Height);
+                    var d2c = (float)Math.Sqrt(Math.Pow(p.X - c.X, 2) + Math.Pow(p.Y - c.Y, 2));
+                    dataGridView1.Rows.Add(p.X, p.Y, Math.Round(d2c, 2), Math.Round(Math.Pow(d2c, 2), 2));
                     dataGridView1.Rows[index].DefaultCellStyle.BackColor = point.Centroid.Color;
+                }
+                else
+                {
+                    dataGridView1.Rows.Add(p.X, p.Y, string.Empty, string.Empty);
                 }
                 index++;
             }
@@ -383,6 +375,28 @@ namespace KMeansResearchTools
 
     public static class Utilities
     {
+        public static PointF TranslatePoint(PointF originalPoint, int width, int height)
+        {
+            int padding = 20;
+            int axisLength = Math.Min(width, height) - 2 * padding;
+
+            float x = (originalPoint.X - padding) * 100 / axisLength;
+            float y = 100 - (originalPoint.Y - padding) * 100 / axisLength;
+
+            return new PointF((float)Math.Round(x), (float)Math.Round(y));
+        }
+
+        public static PointF ReverseTranslatePoint(PointF translatedPoint, int width, int height)
+        {
+            int padding = 20;
+            int axisLength = Math.Min(width, height) - 2 * padding;
+
+            float x = (translatedPoint.X * axisLength / 100) + padding;
+            float y = padding + (100 - translatedPoint.Y) * axisLength / 100;
+
+            return new PointF(x, y);
+        }
+
         public static void AssociateToClosestCentroid(List<PointData> points, List<CentroidData> centroids)
         {
             foreach (var point in points)
@@ -478,6 +492,24 @@ namespace KMeansResearchTools
                 var pointsForCentroid = points.Where(p => p.Centroid == centroid).ToList();
                 centroid.Point = CalculateCentroid(pointsForCentroid.Select(p => p.Point).ToList());
             }
+        }
+
+        public static double CalculateWCSS(CentroidData centroid, List<PointData> points, int scaleWidth, int scaleHeight)
+        {
+            double wcss = 0;
+
+            // Filter the points that belong to the specified centroid
+            var clusteredPoints = points.Where(p => p.Centroid == centroid);
+
+            foreach (var point in clusteredPoints)
+            {
+                double distance = CalculateEuclideanDistance(
+                    TranslatePoint(point.Point, scaleWidth, scaleHeight),
+                    TranslatePoint(centroid.Point, scaleWidth, scaleHeight));
+                wcss += Math.Pow(distance, 2);
+            }
+
+            return wcss;
         }
     }
 }
