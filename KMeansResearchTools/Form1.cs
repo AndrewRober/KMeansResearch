@@ -11,11 +11,12 @@ namespace KMeansResearchTools
         private CentroidData VCC;
         List<Color> colors = new()
         {
-            Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple,
-            Color.Orange, Color.Pink, Color.Brown, Color.Cyan,
-            Color.Magenta, Color.Lime, Color.Teal, Color.RosyBrown,
             Color.DarkRed, Color.DarkBlue, Color.DarkGreen, Color.DarkOrange,
             Color.DarkViolet, Color.DarkCyan, Color.DarkMagenta, Color.DarkGray,
+            Color.DarkOliveGreen, Color.DarkGoldenrod, Color.DarkSeaGreen,
+            Color.DarkSlateBlue, Color.DarkSlateGray, Color.DarkTurquoise,
+            Color.IndianRed, Color.Maroon, Color.Navy, Color.MidnightBlue,
+            Color.Chocolate, Color.SaddleBrown, Color.Indigo
         };
         private Random rand;
         private ToolTip toolTip;
@@ -47,6 +48,7 @@ namespace KMeansResearchTools
             PointsDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             PointsDgv.DefaultCellStyle.SelectionBackColor = PointsDgv.DefaultCellStyle.BackColor;
             PointsDgv.DefaultCellStyle.SelectionForeColor = PointsDgv.DefaultCellStyle.ForeColor;
+            PointsDgv.ForeColor = Color.White;
 
 
             CentroidsDgv.Columns.Add("X", "X");
@@ -62,6 +64,7 @@ namespace KMeansResearchTools
             CentroidsDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             CentroidsDgv.DefaultCellStyle.SelectionBackColor = CentroidsDgv.DefaultCellStyle.BackColor;
             CentroidsDgv.DefaultCellStyle.SelectionForeColor = CentroidsDgv.DefaultCellStyle.ForeColor;
+            CentroidsDgv.ForeColor = Color.White;
 
             pictureBox1.Paint += pictureBox1_Paint;
             pictureBox1.MouseClick += pictureBox1_MouseClick;
@@ -72,7 +75,6 @@ namespace KMeansResearchTools
             btnAddPoints.Click += (s, e) => { lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Points" ? "Mode: Neutral" : "Mode: Adding Points"; };
             btnAddCentroids.Click += (s, e) => { lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Centroids" ? "Mode: Neutral" : "Mode: Adding Centroids"; };
         }
-
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
@@ -230,11 +232,11 @@ namespace KMeansResearchTools
                             height += 2 * padding;
 
                             // Adjust x and y to be the upper-left corner of the bounding rectangle around the centroid
-                            float x = centroid.Point.X - width / 2;
-                            float y = centroid.Point.Y - height / 2;
+                            float x = centroid.Point.X - Math.Max(width, height) / 2;
+                            float y = centroid.Point.Y - Math.Max(width, height) / 2;
 
                             // Draw an ellipse around each centroid
-                            g.DrawEllipse(Pens.Black, x, y, width, height);
+                            g.DrawEllipse(Pens.Black, x, y, Math.Max(width, height), Math.Max(width, height));
                         }
                     }
                 }
@@ -547,9 +549,9 @@ namespace KMeansResearchTools
 
         private void CreateRandomPointsBtn_Click(object sender, EventArgs e)
         {
-
             points.Clear();
             centroids.Clear();
+            VCC = null;
             Random random = new Random();
             for (int i = 0; i < 20; i++)
             {
@@ -581,12 +583,14 @@ namespace KMeansResearchTools
         private void CreateCentralizedRandomPointsBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
+            centroids.Clear();
+            VCC = null;
             Random random = new Random();
 
             int numClusters = 4;
             int pointsPerCluster = 5;  // Change this to control the number of points per cluster
             float radius = 50;  // Change this to control the radius around each cluster center
-            int padding = 50;  // Padding from the edges of the PictureBox
+            int padding = 100;  // Padding from the edges of the PictureBox
 
             for (int i = 0; i < numClusters; i++)
             {
@@ -725,6 +729,7 @@ namespace KMeansResearchTools
                 }
 
                 point.Centroid = closestCentroid;
+                point.Color = closestCentroid.Color;
             }
         }
 

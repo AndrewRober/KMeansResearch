@@ -50,23 +50,26 @@
             NewCentroidAndFullKmeanBtn = new Button();
             ShowVirtualCCBtn = new Button();
             ShowCentroidsBoundriesBtn = new Button();
+            pictureBox2 = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PointsDgv).BeginInit();
             ((System.ComponentModel.ISupportInitialize)CentroidsDgv).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
             // 
             // pictureBox1
             // 
             pictureBox1.Location = new Point(12, 12);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(600, 600);
+            pictureBox1.Size = new Size(750, 750);
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // btnAddPoints
             // 
-            btnAddPoints.Location = new Point(12, 618);
+            btnAddPoints.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAddPoints.Location = new Point(1174, 682);
             btnAddPoints.Name = "btnAddPoints";
             btnAddPoints.Size = new Size(94, 29);
             btnAddPoints.TabIndex = 1;
@@ -75,7 +78,8 @@
             // 
             // btnAddCentroids
             // 
-            btnAddCentroids.Location = new Point(112, 618);
+            btnAddCentroids.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAddCentroids.Location = new Point(1274, 682);
             btnAddCentroids.Name = "btnAddCentroids";
             btnAddCentroids.Size = new Size(122, 29);
             btnAddCentroids.TabIndex = 2;
@@ -86,9 +90,9 @@
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblCurrentMode });
-            statusStrip1.Location = new Point(0, 728);
+            statusStrip1.Location = new Point(0, 960);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1311, 22);
+            statusStrip1.Size = new Size(1859, 22);
             statusStrip1.TabIndex = 3;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -99,7 +103,8 @@
             // 
             // ClearBtn
             // 
-            ClearBtn.Location = new Point(318, 618);
+            ClearBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            ClearBtn.Location = new Point(1553, 682);
             ClearBtn.Name = "ClearBtn";
             ClearBtn.Size = new Size(94, 29);
             ClearBtn.TabIndex = 4;
@@ -109,7 +114,8 @@
             // 
             // SaveBtn
             // 
-            SaveBtn.Location = new Point(418, 618);
+            SaveBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            SaveBtn.Location = new Point(1653, 682);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 29);
             SaveBtn.TabIndex = 5;
@@ -119,7 +125,8 @@
             // 
             // LoadBtn
             // 
-            LoadBtn.Location = new Point(518, 618);
+            LoadBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            LoadBtn.Location = new Point(1753, 682);
             LoadBtn.Name = "LoadBtn";
             LoadBtn.Size = new Size(94, 29);
             LoadBtn.TabIndex = 6;
@@ -134,18 +141,19 @@
             PointsDgv.AllowUserToResizeColumns = false;
             PointsDgv.AllowUserToResizeRows = false;
             PointsDgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            PointsDgv.Location = new Point(618, 12);
+            PointsDgv.Location = new Point(777, 12);
             PointsDgv.MultiSelect = false;
             PointsDgv.Name = "PointsDgv";
             PointsDgv.ReadOnly = true;
             PointsDgv.RowHeadersWidth = 51;
             PointsDgv.RowTemplate.Height = 29;
-            PointsDgv.Size = new Size(681, 370);
+            PointsDgv.Size = new Size(384, 945);
             PointsDgv.TabIndex = 7;
             // 
             // ShowGridBtn
             // 
-            ShowGridBtn.Location = new Point(12, 653);
+            ShowGridBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            ShowGridBtn.Location = new Point(1174, 715);
             ShowGridBtn.Name = "ShowGridBtn";
             ShowGridBtn.Size = new Size(134, 29);
             ShowGridBtn.TabIndex = 8;
@@ -155,7 +163,8 @@
             // 
             // ShowConnectionsBtn
             // 
-            ShowConnectionsBtn.Location = new Point(152, 653);
+            ShowConnectionsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            ShowConnectionsBtn.Location = new Point(1314, 715);
             ShowConnectionsBtn.Name = "ShowConnectionsBtn";
             ShowConnectionsBtn.Size = new Size(174, 29);
             ShowConnectionsBtn.TabIndex = 9;
@@ -165,7 +174,8 @@
             // 
             // AssociatePointsBtn
             // 
-            AssociatePointsBtn.Location = new Point(618, 618);
+            AssociatePointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            AssociatePointsBtn.Location = new Point(1174, 893);
             AssociatePointsBtn.Name = "AssociatePointsBtn";
             AssociatePointsBtn.Size = new Size(129, 29);
             AssociatePointsBtn.TabIndex = 10;
@@ -175,7 +185,8 @@
             // 
             // AddNewCentroidBtn
             // 
-            AddNewCentroidBtn.Location = new Point(753, 618);
+            AddNewCentroidBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            AddNewCentroidBtn.Location = new Point(1315, 893);
             AddNewCentroidBtn.Name = "AddNewCentroidBtn";
             AddNewCentroidBtn.Size = new Size(204, 29);
             AddNewCentroidBtn.TabIndex = 11;
@@ -185,7 +196,8 @@
             // 
             // OptimizeCentroidPositionBtn
             // 
-            OptimizeCentroidPositionBtn.Location = new Point(963, 618);
+            OptimizeCentroidPositionBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            OptimizeCentroidPositionBtn.Location = new Point(1531, 893);
             OptimizeCentroidPositionBtn.Name = "OptimizeCentroidPositionBtn";
             OptimizeCentroidPositionBtn.Size = new Size(208, 29);
             OptimizeCentroidPositionBtn.TabIndex = 12;
@@ -200,20 +212,21 @@
             CentroidsDgv.AllowUserToResizeColumns = false;
             CentroidsDgv.AllowUserToResizeRows = false;
             CentroidsDgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            CentroidsDgv.Location = new Point(618, 388);
+            CentroidsDgv.Location = new Point(12, 768);
             CentroidsDgv.MultiSelect = false;
             CentroidsDgv.Name = "CentroidsDgv";
             CentroidsDgv.ReadOnly = true;
             CentroidsDgv.RowHeadersWidth = 51;
             CentroidsDgv.RowTemplate.Height = 29;
-            CentroidsDgv.Size = new Size(681, 224);
+            CentroidsDgv.Size = new Size(759, 189);
             CentroidsDgv.TabIndex = 13;
             // 
             // FullKmeanBtn
             // 
-            FullKmeanBtn.Location = new Point(1177, 618);
+            FullKmeanBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            FullKmeanBtn.Location = new Point(1751, 893);
             FullKmeanBtn.Name = "FullKmeanBtn";
-            FullKmeanBtn.Size = new Size(122, 29);
+            FullKmeanBtn.Size = new Size(94, 29);
             FullKmeanBtn.TabIndex = 14;
             FullKmeanBtn.Text = "Full Kmean";
             FullKmeanBtn.UseVisualStyleBackColor = true;
@@ -221,7 +234,8 @@
             // 
             // CreateRandomPointsBtn
             // 
-            CreateRandomPointsBtn.Location = new Point(618, 653);
+            CreateRandomPointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            CreateRandomPointsBtn.Location = new Point(1174, 928);
             CreateRandomPointsBtn.Name = "CreateRandomPointsBtn";
             CreateRandomPointsBtn.Size = new Size(174, 29);
             CreateRandomPointsBtn.TabIndex = 15;
@@ -231,7 +245,8 @@
             // 
             // SaveImgBtn
             // 
-            SaveImgBtn.Location = new Point(478, 653);
+            SaveImgBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            SaveImgBtn.Location = new Point(1713, 717);
             SaveImgBtn.Name = "SaveImgBtn";
             SaveImgBtn.Size = new Size(134, 29);
             SaveImgBtn.TabIndex = 16;
@@ -241,9 +256,10 @@
             // 
             // CreateCentralizedRandomPointsBtn
             // 
-            CreateCentralizedRandomPointsBtn.Location = new Point(798, 653);
+            CreateCentralizedRandomPointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            CreateCentralizedRandomPointsBtn.Location = new Point(1354, 928);
             CreateCentralizedRandomPointsBtn.Name = "CreateCentralizedRandomPointsBtn";
-            CreateCentralizedRandomPointsBtn.Size = new Size(252, 29);
+            CreateCentralizedRandomPointsBtn.Size = new Size(244, 29);
             CreateCentralizedRandomPointsBtn.TabIndex = 17;
             CreateCentralizedRandomPointsBtn.Text = "Create Centralized Random Points";
             CreateCentralizedRandomPointsBtn.UseVisualStyleBackColor = true;
@@ -251,7 +267,8 @@
             // 
             // NewCentroidAndFullKmeanBtn
             // 
-            NewCentroidAndFullKmeanBtn.Location = new Point(1056, 653);
+            NewCentroidAndFullKmeanBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            NewCentroidAndFullKmeanBtn.Location = new Point(1604, 928);
             NewCentroidAndFullKmeanBtn.Name = "NewCentroidAndFullKmeanBtn";
             NewCentroidAndFullKmeanBtn.Size = new Size(243, 29);
             NewCentroidAndFullKmeanBtn.TabIndex = 18;
@@ -261,7 +278,8 @@
             // 
             // ShowVirtualCCBtn
             // 
-            ShowVirtualCCBtn.Location = new Point(246, 688);
+            ShowVirtualCCBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            ShowVirtualCCBtn.Location = new Point(1408, 750);
             ShowVirtualCCBtn.Name = "ShowVirtualCCBtn";
             ShowVirtualCCBtn.Size = new Size(166, 29);
             ShowVirtualCCBtn.TabIndex = 19;
@@ -271,7 +289,8 @@
             // 
             // ShowCentroidsBoundriesBtn
             // 
-            ShowCentroidsBoundriesBtn.Location = new Point(12, 688);
+            ShowCentroidsBoundriesBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            ShowCentroidsBoundriesBtn.Location = new Point(1174, 750);
             ShowCentroidsBoundriesBtn.Name = "ShowCentroidsBoundriesBtn";
             ShowCentroidsBoundriesBtn.Size = new Size(228, 29);
             ShowCentroidsBoundriesBtn.TabIndex = 20;
@@ -279,11 +298,21 @@
             ShowCentroidsBoundriesBtn.UseVisualStyleBackColor = true;
             ShowCentroidsBoundriesBtn.Click += ShowCentroidsBoundriesBtn_Click;
             // 
+            // pictureBox2
+            // 
+            pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pictureBox2.Location = new Point(1167, 12);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(680, 664);
+            pictureBox2.TabIndex = 21;
+            pictureBox2.TabStop = false;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1311, 750);
+            ClientSize = new Size(1859, 982);
+            Controls.Add(pictureBox2);
             Controls.Add(ShowCentroidsBoundriesBtn);
             Controls.Add(ShowVirtualCCBtn);
             Controls.Add(NewCentroidAndFullKmeanBtn);
@@ -306,12 +335,15 @@
             Controls.Add(btnAddPoints);
             Controls.Add(pictureBox1);
             Name = "Form1";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
+            WindowState = FormWindowState.Maximized;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)PointsDgv).EndInit();
             ((System.ComponentModel.ISupportInitialize)CentroidsDgv).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -340,5 +372,6 @@
         private Button NewCentroidAndFullKmeanBtn;
         private Button ShowVirtualCCBtn;
         private Button ShowCentroidsBoundriesBtn;
+        private PictureBox pictureBox2;
     }
 }
