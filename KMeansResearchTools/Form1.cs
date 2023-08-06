@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Text.Json;
+using System.Windows.Forms;
 
 namespace KMeansResearchTools
 {
@@ -7,12 +8,14 @@ namespace KMeansResearchTools
     {
         private List<PointData> points;
         private List<CentroidData> centroids;
+        private CentroidData VCC;
         List<Color> colors = new()
         {
             Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple,
             Color.Orange, Color.Pink, Color.Brown, Color.Cyan,
-            Color.Magenta, Color.Lime, Color.Navy,
-            Color.Teal, Color.RosyBrown
+            Color.Magenta, Color.Lime, Color.Teal, Color.RosyBrown,
+            Color.DarkRed, Color.DarkBlue, Color.DarkGreen, Color.DarkOrange,
+            Color.DarkViolet, Color.DarkCyan, Color.DarkMagenta, Color.DarkGray,
         };
         private Random rand;
         private ToolTip toolTip;
@@ -20,6 +23,8 @@ namespace KMeansResearchTools
         private bool isAddingCentroids;
         private bool showConnections = true;
         private bool showGrid = true;
+        private bool showVCC = true;
+        private bool ShowCentroidsBoundries = true;
 
         public Form1()
         {
@@ -30,15 +35,33 @@ namespace KMeansResearchTools
             rand = new Random();
             toolTip = new ToolTip();
 
-            dataGridView1.Columns.Add("X", "X");
-            dataGridView1.Columns.Add("Y", "Y");
-            dataGridView1.Columns.Add("DistancetoC", "Distance to C");
-            dataGridView1.Columns.Add("DistancetoCSquared", "Dc²");
 
 
-            dataGridView2.Columns.Add("X", "X");
-            dataGridView2.Columns.Add("Y", "Y");
-            dataGridView2.Columns.Add("DistancetoC", "Σ d(Pi, C)²");
+            PointsDgv.Columns.Add("X", "X");
+            PointsDgv.Columns.Add("Y", "Y");
+            PointsDgv.Columns.Add("DistancetoC", "Distance to C");
+            PointsDgv.Columns.Add("DistancetoCSquared", "Dc²");
+            PointsDgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            PointsDgv.DataBindingComplete += (s, args) => PointsDgv.ClearSelection();
+            PointsDgv.RowsAdded += (s, args) => PointsDgv.ClearSelection();
+            PointsDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            PointsDgv.DefaultCellStyle.SelectionBackColor = PointsDgv.DefaultCellStyle.BackColor;
+            PointsDgv.DefaultCellStyle.SelectionForeColor = PointsDgv.DefaultCellStyle.ForeColor;
+
+
+            CentroidsDgv.Columns.Add("X", "X");
+            CentroidsDgv.Columns.Add("Y", "Y");
+            CentroidsDgv.Columns.Add("Kpn", "Kpn");
+            CentroidsDgv.Columns.Add("SumDistancetoC", "Σ d(Pi, C)²");
+            CentroidsDgv.Columns.Add("SumDistancetoCAvg", "Σ d(Pi, C)² / Kpn");
+            CentroidsDgv.Columns.Add("DensityFactor", "Density Factor ρ");
+            CentroidsDgv.Columns.Add("VCC", "VCC");
+            CentroidsDgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            CentroidsDgv.DataBindingComplete += (s, args) => CentroidsDgv.ClearSelection();
+            CentroidsDgv.RowsAdded += (s, args) => CentroidsDgv.ClearSelection();
+            CentroidsDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            CentroidsDgv.DefaultCellStyle.SelectionBackColor = CentroidsDgv.DefaultCellStyle.BackColor;
+            CentroidsDgv.DefaultCellStyle.SelectionForeColor = CentroidsDgv.DefaultCellStyle.ForeColor;
 
             pictureBox1.Paint += pictureBox1_Paint;
             pictureBox1.MouseClick += pictureBox1_MouseClick;
@@ -117,6 +140,104 @@ namespace KMeansResearchTools
             {
                 var brush = new SolidBrush(centroid.Color);
                 g.FillEllipse(brush, centroid.Point.X, centroid.Point.Y, 10, 10);
+            }
+
+            if (PointsDgv.Rows.Count > 0 &&
+                CentroidsDgv.Rows.Count > 0 &&
+                DataGridViewColumnHasValues(PointsDgv, "DistancetoC") &&
+                DataGridViewColumnHasValues(PointsDgv, "DistancetoCSquared") &&
+                DataGridViewColumnHasValues(CentroidsDgv, "Kpn") &&
+                DataGridViewColumnHasValues(CentroidsDgv, "SumDistancetoC") &&
+                DataGridViewColumnHasValues(CentroidsDgv, "SumDistancetoCAvg") &&
+                DataGridViewColumnHasValues(CentroidsDgv, "DensityFactor"))
+            {
+                // Calculate WCSS
+                double wcss = 0;
+                foreach (DataGridViewRow row in CentroidsDgv.Rows)
+                {
+                    if (row.Cells["SumDistancetoC"].Value != null)
+                    {
+                        wcss += double.Parse(row.Cells["SumDistancetoC"].Value.ToString());
+                    }
+                }
+
+                // Calculate density factor ρ
+                double densityFactor = 0;
+                foreach (DataGridViewRow row in CentroidsDgv.Rows)
+                {
+                    if (row.Cells["SumDistancetoCAvg"].Value != null)
+                    {
+                        densityFactor += double.Parse(row.Cells["SumDistancetoCAvg"].Value.ToString());
+                    }
+                }
+                densityFactor /= CentroidsDgv.Rows.Count;
+
+                // Translate centroids to normalized coordinate system
+                List<PointF> translatedCentroids = centroids.Select(c => Utilities.TranslatePoint(c.Point, pictureBox1.Width, pictureBox1.Height)).ToList();
+
+
+                // Calculate the sum of distances and the sum of squared distances from each translated centroid to the virtual centroid
+                float sumOfDistances = translatedCentroids.Sum(c => (float)Math.Sqrt((c.X - VCC.Point.X) * (c.X - VCC.Point.X)
+                    + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y)));
+                float sumOfSquaredDistances = translatedCentroids.Sum(c => (c.X - VCC.Point.X) * (c.X - VCC.Point.X)
+                                                                           + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
+
+                // Draw WCSS, density factor ρ and sum of distances and sum of squared distances
+                string displayText = $"WCSS: {wcss:F2}\nDensity: {densityFactor:F2}\nDimensionality(1/d): {(1.0 / 2.0):F2}\nVirtual CC Sum Distances: {sumOfDistances:F2}\nVirtual CC Sum Squared Distances: {sumOfSquaredDistances:F2}";
+                //SizeF textSize = e.Graphics.MeasureString(displayText, this.Font);
+                PointF textLocation = new PointF(70, 20);
+                e.Graphics.DrawString(displayText, this.Font, Brushes.Red, textLocation);
+
+                if (showVCC)
+                {
+                    // Create a bold font
+                    var boldFont = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Bold);
+
+
+                    // Create a bold pen
+                    var boldPen = new Pen(Color.Red, 2.0f); // Change the second parameter to adjust the thickness
+
+                    // Draw lines from virtual centroid to each centroid using the bold pen
+                    foreach (PointF cp in centroids.Select(c => c.Point))
+                        e.Graphics.DrawLine(boldPen, VCC.Point, cp);
+
+                    // Draw the virtual centroid as the text "VC", not an ellipse, in bold
+                    e.Graphics.DrawString("VC", boldFont, Brushes.DarkRed, VCC.Point);
+                }
+
+                if (ShowCentroidsBoundries)
+                {
+                    foreach (var centroid in centroids)
+                    {
+                        var brush = new SolidBrush(centroid.Color);
+
+                        // Get all points for this centroid
+                        var centroidPoints = points.Where(p => p.Centroid != null && p.Centroid.Id == centroid.Id).ToList();
+
+                        if (centroidPoints.Any())
+                        {
+                            // Calculate the maximum distance from the centroid in x and y directions
+                            float maxXDistance = centroidPoints.Max(p => Math.Abs(p.Point.X - centroid.Point.X));
+                            float maxYDistance = centroidPoints.Max(p => Math.Abs(p.Point.Y - centroid.Point.Y));
+
+                            // Calculate the width and height using these maximum distances
+                            float width = 2 * maxXDistance;
+                            float height = 2 * maxYDistance;
+
+                            // Add some padding
+                            padding = 25;
+                            width += 2 * padding;
+                            height += 2 * padding;
+
+                            // Adjust x and y to be the upper-left corner of the bounding rectangle around the centroid
+                            float x = centroid.Point.X - width / 2;
+                            float y = centroid.Point.Y - height / 2;
+
+                            // Draw an ellipse around each centroid
+                            g.DrawEllipse(Pens.Black, x, y, width, height);
+                        }
+                    }
+                }
             }
         }
 
@@ -271,27 +392,58 @@ namespace KMeansResearchTools
             UpdateDataGridView();
         }
 
+        private void UpdateVCC()
+        {
+            var virtualCentroidX = centroids.Average(c => c.Point.X);
+            var virtualCentroidY = centroids.Average(c => c.Point.Y);
+
+            // Update the VCC
+            if (VCC == null)
+                VCC = new CentroidData { Point = new PointF(virtualCentroidX, virtualCentroidY), Color = Color.Black };
+            else
+                VCC.Point = new PointF(virtualCentroidX, virtualCentroidY);
+        }
+
         private void UpdateDataGridView()
         {
             // Clear existing rows
-            dataGridView1.Rows.Clear();
-            dataGridView2.Rows.Clear();
+            UpdateVCC();
+            PointsDgv.Rows.Clear();
+            CentroidsDgv.Rows.Clear();
+
 
             int index = 0;
-
-            // Add rows for centroids
             foreach (var centroid in centroids)
             {
                 var c = Utilities.TranslatePoint(centroid.Point, pictureBox1.Width, pictureBox1.Height);
-                dataGridView2.Rows.Add(c.X, c.Y, Utilities.CalculateWCSS(centroid, points, pictureBox1.Width, pictureBox1.Height));
-                dataGridView2.Rows[index].DefaultCellStyle.BackColor = centroid.Color;
+                var pointsCount = points.Count(pt => pt.Centroid == centroid);
+                var wcss = Utilities.CalculateWCSS(centroid, points, pictureBox1.Width, pictureBox1.Height);
+
+                var pointsForCentroid = points.Where(pt => pt.Centroid == centroid).ToList();
+                double densityFactor = 0;
+                if (pointsForCentroid.Count > 1)
+                    foreach (var point in pointsForCentroid)
+                    {
+                        double minDistance = pointsForCentroid.Where(p => p != point)
+                            .Min(p => Utilities.CalculateDistance(point, p, pictureBox1.Width, pictureBox1.Height));
+                        densityFactor += minDistance;
+                    }
+                densityFactor /= pointsForCentroid.Count;
+
+                // Calculate distance to virtual centroid
+                double distanceToVcc = Math.Sqrt((c.X - VCC.Point.X) * (c.X - VCC.Point.X) + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
+
+                CentroidsDgv.Rows.Add(c.X, c.Y, pointsCount,
+                    Math.Round(wcss, 2), Math.Round(wcss / pointsCount, 2),
+                    Math.Round(densityFactor, 2), Math.Round(distanceToVcc, 2));
+                CentroidsDgv.Rows[index].DefaultCellStyle.BackColor = centroid.Color;
                 index++;
             }
 
             index = 0;
 
             // Add rows for points
-            foreach (var point in points)
+            foreach (var point in points.Where(p => p.Centroid != null).OrderBy(p => p.Centroid.Id))
             {
                 var p = Utilities.TranslatePoint(point.Point, pictureBox1.Width, pictureBox1.Height);
 
@@ -299,12 +451,12 @@ namespace KMeansResearchTools
                 {
                     var c = Utilities.TranslatePoint(point.Centroid.Point, pictureBox1.Width, pictureBox1.Height);
                     var d2c = (float)Math.Sqrt(Math.Pow(p.X - c.X, 2) + Math.Pow(p.Y - c.Y, 2));
-                    dataGridView1.Rows.Add(p.X, p.Y, Math.Round(d2c, 2), Math.Round(Math.Pow(d2c, 2), 2));
-                    dataGridView1.Rows[index].DefaultCellStyle.BackColor = point.Centroid.Color;
+                    PointsDgv.Rows.Add(p.X, p.Y, Math.Round(d2c, 2), Math.Round(Math.Pow(d2c, 2), 2));
+                    PointsDgv.Rows[index].DefaultCellStyle.BackColor = point.Centroid.Color;
                 }
                 else
                 {
-                    dataGridView1.Rows.Add(p.X, p.Y, string.Empty, string.Empty);
+                    PointsDgv.Rows.Add(p.X, p.Y, string.Empty, string.Empty);
                 }
                 index++;
             }
@@ -354,7 +506,159 @@ namespace KMeansResearchTools
 
         private void OptimizeCentroidPositionBtn_Click(object sender, EventArgs e)
         {
+            Utilities.AssociateToClosestCentroid(points, centroids);
             Utilities.OptimizeCentroidPosition(points, centroids);
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void FullKmeanBtn_Click(object sender, EventArgs e)
+        {
+            var centroidsLocations = centroids.Select(c => c.Point).ToList();
+            var lastCentroidsLocations = new List<PointF>();
+
+            int limit = 50;
+
+            while (limit-- > 0 && !centroidsLocations.SequenceEqual(lastCentroidsLocations))
+            {
+                lastCentroidsLocations = new List<PointF>(centroidsLocations);
+                Utilities.AssociateToClosestCentroid(points, centroids);
+                Utilities.OptimizeCentroidPosition(points, centroids);
+                centroidsLocations = centroids.Select(c => c.Point).ToList();
+            }
+
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void SaveImgBtn_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Images|*.png;*.bmp;*.jpg";
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    Bitmap bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+                    pictureBox1.DrawToBitmap(bmp, new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height));
+                    bmp.Save(sfd.FileName);
+                }
+            }
+        }
+
+        private void CreateRandomPointsBtn_Click(object sender, EventArgs e)
+        {
+
+            points.Clear();
+            centroids.Clear();
+            Random random = new Random();
+            for (int i = 0; i < 20; i++)
+            {
+                float x = (float)random.NextDouble() * pictureBox1.Width;
+                float y = (float)random.NextDouble() * pictureBox1.Height;
+                points.Add(new PointData { Point = new PointF(x, y), Color = Color.Black });
+            }
+            pictureBox1.Invalidate();
+        }
+
+        private bool DataGridViewColumnHasValues(DataGridView dgv, string columnName)
+        {
+            if (!dgv.Columns.Contains(columnName))
+            {
+                return false;
+            }
+
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                if (row.Cells[columnName].Value == null || string.IsNullOrWhiteSpace(row.Cells[columnName].Value.ToString()))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void CreateCentralizedRandomPointsBtn_Click(object sender, EventArgs e)
+        {
+            points.Clear();
+            Random random = new Random();
+
+            int numClusters = 4;
+            int pointsPerCluster = 5;  // Change this to control the number of points per cluster
+            float radius = 50;  // Change this to control the radius around each cluster center
+            int padding = 50;  // Padding from the edges of the PictureBox
+
+            for (int i = 0; i < numClusters; i++)
+            {
+                // Generate a random central point for the cluster, with padding
+                float centerX = padding + (float)random.NextDouble() * (pictureBox1.Width - 2 * padding);
+                float centerY = padding + (float)random.NextDouble() * (pictureBox1.Height - 2 * padding);
+
+                // Generate points around the central point
+                for (int j = 0; j < pointsPerCluster; j++)
+                {
+                    double angle = random.NextDouble() * Math.PI * 2;  // Random angle
+                    float x = centerX + radius * (float)Math.Cos(angle);  // X position with respect to the radius and angle
+                    float y = centerY + radius * (float)Math.Sin(angle);  // Y position with respect to the radius and angle
+
+                    // Ensure the points are within the PictureBox
+                    x = Math.Max(0, Math.Min(pictureBox1.Width, x));
+                    y = Math.Max(0, Math.Min(pictureBox1.Height, y));
+
+                    points.Add(new PointData { Point = new PointF(x, y), Color = Color.Black });
+                }
+            }
+
+            pictureBox1.Invalidate();
+        }
+
+        private void NewCentroidAndFullKmeanBtn_Click(object sender, EventArgs e)
+        {
+            if (!centroids.Any())
+            {
+                centroids.Add(new CentroidData()
+                {
+                    Color = colors[rand.Next(colors.Count)],
+                    Point = points[rand.Next(points.Count)].Point
+                });
+            }
+            else
+            {
+                var furthestPoint = Utilities.GetFurthestPointFromCentroids(centroids, points);
+                centroids.Add(new CentroidData()
+                {
+                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[rand.Next(colors.Count - centroids.Count)],
+                    Point = furthestPoint.Point
+                });
+            }
+
+            var centroidsLocations = centroids.Select(c => c.Point).ToList();
+            var lastCentroidsLocations = new List<PointF>();
+
+            int limit = 50;
+
+            while (limit-- > 0 && !centroidsLocations.SequenceEqual(lastCentroidsLocations))
+            {
+                lastCentroidsLocations = new List<PointF>(centroidsLocations);
+                Utilities.AssociateToClosestCentroid(points, centroids);
+                Utilities.OptimizeCentroidPosition(points, centroids);
+                centroidsLocations = centroids.Select(c => c.Point).ToList();
+            }
+
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void ShowVirtualCCBtn_Click(object sender, EventArgs e)
+        {
+            showVCC = !showVCC;
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
+
+        private void ShowCentroidsBoundriesBtn_Click(object sender, EventArgs e)
+        {
+            ShowCentroidsBoundries = !ShowCentroidsBoundries;
             UpdateDataGridView();
             pictureBox1.Invalidate();
         }
@@ -365,12 +669,18 @@ namespace KMeansResearchTools
         public PointF Point { get; set; }
         public Color Color { get; set; }
         public CentroidData Centroid { get; set; }
+        public Guid Id { get; set; }
+
+        public PointData() => Id = Guid.NewGuid();
     }
 
     public class CentroidData
     {
         public PointF Point { get; set; }
         public Color Color { get; set; }
+        public Guid Id { get; set; }
+
+        public CentroidData() => Id = Guid.NewGuid();
     }
 
     public static class Utilities
@@ -510,6 +820,17 @@ namespace KMeansResearchTools
             }
 
             return wcss;
+        }
+
+        public static double CalculateDistance(PointData point1, PointData point2, int width, int height)
+        {
+            var p1 = TranslatePoint(point1.Point, width, height);
+            var p2 = TranslatePoint(point2.Point, width, height);
+
+            var dx = p1.X - p2.X;
+            var dy = p1.Y - p2.Y;
+
+            return Math.Sqrt(dx * dx + dy * dy);
         }
     }
 }
