@@ -51,11 +51,13 @@
             ShowVirtualCCBtn = new Button();
             ShowCentroidsBoundriesBtn = new Button();
             pictureBox2 = new PictureBox();
+            elbowDgv = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PointsDgv).BeginInit();
             ((System.ComponentModel.ISupportInitialize)CentroidsDgv).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)elbowDgv).BeginInit();
             SuspendLayout();
             // 
             // pictureBox1
@@ -147,7 +149,7 @@
             PointsDgv.ReadOnly = true;
             PointsDgv.RowHeadersWidth = 51;
             PointsDgv.RowTemplate.Height = 29;
-            PointsDgv.Size = new Size(384, 945);
+            PointsDgv.Size = new Size(384, 750);
             PointsDgv.TabIndex = 7;
             // 
             // ShowGridBtn
@@ -307,11 +309,28 @@
             pictureBox2.TabIndex = 21;
             pictureBox2.TabStop = false;
             // 
+            // elbowDgv
+            // 
+            elbowDgv.AllowUserToAddRows = false;
+            elbowDgv.AllowUserToDeleteRows = false;
+            elbowDgv.AllowUserToResizeColumns = false;
+            elbowDgv.AllowUserToResizeRows = false;
+            elbowDgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            elbowDgv.Location = new Point(777, 768);
+            elbowDgv.MultiSelect = false;
+            elbowDgv.Name = "elbowDgv";
+            elbowDgv.ReadOnly = true;
+            elbowDgv.RowHeadersWidth = 51;
+            elbowDgv.RowTemplate.Height = 29;
+            elbowDgv.Size = new Size(384, 189);
+            elbowDgv.TabIndex = 22;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1859, 982);
+            Controls.Add(elbowDgv);
             Controls.Add(pictureBox2);
             Controls.Add(ShowCentroidsBoundriesBtn);
             Controls.Add(ShowVirtualCCBtn);
@@ -344,6 +363,7 @@
             ((System.ComponentModel.ISupportInitialize)PointsDgv).EndInit();
             ((System.ComponentModel.ISupportInitialize)CentroidsDgv).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)elbowDgv).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -373,5 +393,6 @@
         private Button ShowVirtualCCBtn;
         private Button ShowCentroidsBoundriesBtn;
         private PictureBox pictureBox2;
+        private DataGridView elbowDgv;
     }
 }

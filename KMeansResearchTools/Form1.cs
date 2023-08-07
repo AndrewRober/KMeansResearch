@@ -1,6 +1,12 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using System.Numerics;
 using System.Text.Json;
 using System.Windows.Forms;
+
+using static System.Net.Mime.MediaTypeNames;
+
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace KMeansResearchTools
 {
@@ -9,6 +15,7 @@ namespace KMeansResearchTools
         private List<PointData> points;
         private List<CentroidData> centroids;
         private CentroidData VCC;
+
         List<Color> colors = new()
         {
             Color.DarkRed, Color.DarkBlue, Color.DarkGreen, Color.DarkOrange,
@@ -18,6 +25,7 @@ namespace KMeansResearchTools
             Color.IndianRed, Color.Maroon, Color.Navy, Color.MidnightBlue,
             Color.Chocolate, Color.SaddleBrown, Color.Indigo
         };
+
         private Random rand;
         private ToolTip toolTip;
         private bool isAddingPoints;
@@ -26,6 +34,7 @@ namespace KMeansResearchTools
         private bool showGrid = true;
         private bool showVCC = true;
         private bool ShowCentroidsBoundries = true;
+        private List<ElbowChartData> elbowChartData = new();
 
         public Form1()
         {
@@ -37,6 +46,13 @@ namespace KMeansResearchTools
             toolTip = new ToolTip();
 
 
+            elbowDgv.Columns.Add("Cn", "Cn");
+            elbowDgv.Columns.Add("WCSS", "WCSS");
+            elbowDgv.Columns.Add("sumOfDistances", "Σd(C,VCC)");
+            elbowDgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            elbowDgv.DataBindingComplete += (s, args) => elbowDgv.ClearSelection();
+            elbowDgv.RowsAdded += (s, args) => elbowDgv.ClearSelection();
+            elbowDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
             PointsDgv.Columns.Add("X", "X");
             PointsDgv.Columns.Add("Y", "Y");
@@ -72,8 +88,18 @@ namespace KMeansResearchTools
 
             lblCurrentMode.Text = "Mode: Neutral";
 
-            btnAddPoints.Click += (s, e) => { lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Points" ? "Mode: Neutral" : "Mode: Adding Points"; };
-            btnAddCentroids.Click += (s, e) => { lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Centroids" ? "Mode: Neutral" : "Mode: Adding Centroids"; };
+            btnAddPoints.Click += (s, e) =>
+            {
+                lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Points"
+                    ? "Mode: Neutral"
+                    : "Mode: Adding Points";
+            };
+            btnAddCentroids.Click += (s, e) =>
+            {
+                lblCurrentMode.Text = lblCurrentMode.Text == "Mode: Adding Centroids"
+                    ? "Mode: Neutral"
+                    : "Mode: Adding Centroids";
+            };
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -89,9 +115,10 @@ namespace KMeansResearchTools
                 }
             }
 
-            int padding = 20;  // Amount of padding to add
-            int arrowSize = 10;  // Size of the arrow heads
-            int axisLength = Math.Min(pictureBox1.Width, pictureBox1.Height) - 2 * padding;  // Ensure the axis are of the same length
+            int padding = 20; // Amount of padding to add
+            int arrowSize = 10; // Size of the arrow heads
+            int axisLength =
+                Math.Min(pictureBox1.Width, pictureBox1.Height) - 2 * padding; // Ensure the axis are of the same length
 
             // Adjusted axis
             Point origin = new Point(padding, pictureBox1.Height - padding);
@@ -99,8 +126,8 @@ namespace KMeansResearchTools
             Point yEnd = new Point(padding, pictureBox1.Height - padding - axisLength);
 
             // Draw axis with padding
-            g.DrawLine(Pens.Black, origin, xEnd);  // X-axis
-            g.DrawLine(Pens.Black, origin, yEnd);  // Y-axis
+            g.DrawLine(Pens.Black, origin, xEnd); // X-axis
+            g.DrawLine(Pens.Black, origin, yEnd); // Y-axis
 
             // Draw arrows
             g.DrawLine(Pens.Black, xEnd, new Point(xEnd.X - arrowSize, xEnd.Y - arrowSize));
@@ -117,7 +144,8 @@ namespace KMeansResearchTools
                 {
                     int x = i * axisLength / 100 + padding;
                     int y = pictureBox1.Height - i * axisLength / 100 - padding;
-                    g.DrawLine(gridPen, x, pictureBox1.Height - padding, x, pictureBox1.Height - padding - axisLength); // vertical line
+                    g.DrawLine(gridPen, x, pictureBox1.Height - padding, x,
+                        pictureBox1.Height - padding - axisLength); // vertical line
                     g.DrawLine(gridPen, padding, y, padding + axisLength, y); // horizontal line
                 }
             }
@@ -172,25 +200,30 @@ namespace KMeansResearchTools
                         densityFactor += double.Parse(row.Cells["SumDistancetoCAvg"].Value.ToString());
                     }
                 }
+
                 densityFactor /= CentroidsDgv.Rows.Count;
 
                 // Translate centroids to normalized coordinate system
-                List<PointF> translatedCentroids = centroids.Select(c => Utilities.TranslatePoint(c.Point, pictureBox1.Width, pictureBox1.Height)).ToList();
+                List<PointF> translatedCentroids = centroids
+                    .Select(c => Utilities.TranslatePoint(c.Point, pictureBox1.Width, pictureBox1.Height)).ToList();
 
 
                 // Calculate the sum of distances and the sum of squared distances from each translated centroid to the virtual centroid
-                float sumOfDistances = translatedCentroids.Sum(c => (float)Math.Sqrt((c.X - VCC.Point.X) * (c.X - VCC.Point.X)
+                float sumOfDistances = translatedCentroids.Sum(c => (float)Math.Sqrt(
+                    (c.X - VCC.Point.X) * (c.X - VCC.Point.X)
                     + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y)));
                 float sumOfSquaredDistances = translatedCentroids.Sum(c => (c.X - VCC.Point.X) * (c.X - VCC.Point.X)
                                                                            + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
 
                 // Draw WCSS, density factor ρ and sum of distances and sum of squared distances
-                string displayText = $"WCSS: {wcss:F2}\nDensity: {densityFactor:F2}\nDimensionality(1/d): {(1.0 / 2.0):F2}\nVirtual CC Sum Distances: {sumOfDistances:F2}\nVirtual CC Sum Squared Distances: {sumOfSquaredDistances:F2}";
+                string displayText =
+                    $"WCSS: {wcss:F2}\nDensity: {densityFactor:F2}\nDimensionality(1/d): {(1.0 / 2.0):F2}\nVirtual CC Sum Distances: {sumOfDistances:F2}\nVirtual CC Sum Squared Distances: {sumOfSquaredDistances:F2}";
                 //SizeF textSize = e.Graphics.MeasureString(displayText, this.Font);
                 PointF textLocation = new PointF(70, 20);
                 e.Graphics.DrawString(displayText, this.Font, Brushes.Red, textLocation);
+                UpdateElbowChart(wcss, sumOfDistances);
 
-                if (showVCC)
+                if (showVCC && VCC != null)
                 {
                     // Create a bold font
                     var boldFont = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Bold);
@@ -214,7 +247,8 @@ namespace KMeansResearchTools
                         var brush = new SolidBrush(centroid.Color);
 
                         // Get all points for this centroid
-                        var centroidPoints = points.Where(p => p.Centroid != null && p.Centroid.Id == centroid.Id).ToList();
+                        var centroidPoints = points.Where(p => p.Centroid != null && p.Centroid.Id == centroid.Id)
+                            .ToList();
 
                         if (centroidPoints.Any())
                         {
@@ -261,7 +295,8 @@ namespace KMeansResearchTools
             {
                 if (lblCurrentMode.Text == "Mode: Adding Points")
                 {
-                    var centroid = centroids.FirstOrDefault(pt => Math.Sqrt(Math.Pow(pt.Point.X - x, 2) + Math.Pow(pt.Point.Y - y, 2)) < 10);
+                    var centroid = centroids.FirstOrDefault(pt =>
+                        Math.Sqrt(Math.Pow(pt.Point.X - x, 2) + Math.Pow(pt.Point.Y - y, 2)) < 10);
                     if (centroid != null)
                     {
                         centroids.Remove(centroid);
@@ -274,7 +309,8 @@ namespace KMeansResearchTools
                 }
                 else if (lblCurrentMode.Text == "Mode: Adding Centroids")
                 {
-                    var pointData = points.FirstOrDefault(pt => Math.Sqrt(Math.Pow(pt.Point.X - x, 2) + Math.Pow(pt.Point.Y - y, 2)) < 10);
+                    var pointData = points.FirstOrDefault(pt =>
+                        Math.Sqrt(Math.Pow(pt.Point.X - x, 2) + Math.Pow(pt.Point.Y - y, 2)) < 10);
                     if (pointData != null)
                     {
                         points.Remove(pointData);
@@ -340,6 +376,7 @@ namespace KMeansResearchTools
         private void ClearBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
+            elbowChartData.Clear();
             centroids.Clear();
             pictureBox1.Invalidate();
             UpdateDataGridView();
@@ -360,7 +397,7 @@ namespace KMeansResearchTools
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Load(openFileDialog.FileName, out points, out centroids);
-                pictureBox1.Invalidate();  // Redraw the picture box
+                pictureBox1.Invalidate(); // Redraw the picture box
             }
         }
 
@@ -369,8 +406,8 @@ namespace KMeansResearchTools
             // Create a dictionary to hold the points and centroids
             var data = new Dictionary<string, object>
             {
-                {"Points", points},
-                {"Centroids", centroids}
+                { "Points", points },
+                { "Centroids", centroids }
             };
 
             // Convert the dictionary to a JSON string
@@ -430,10 +467,12 @@ namespace KMeansResearchTools
                             .Min(p => Utilities.CalculateDistance(point, p, pictureBox1.Width, pictureBox1.Height));
                         densityFactor += minDistance;
                     }
+
                 densityFactor /= pointsForCentroid.Count;
 
                 // Calculate distance to virtual centroid
-                double distanceToVcc = Math.Sqrt((c.X - VCC.Point.X) * (c.X - VCC.Point.X) + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
+                double distanceToVcc = Math.Sqrt((c.X - VCC.Point.X) * (c.X - VCC.Point.X) +
+                                                 (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
 
                 CentroidsDgv.Rows.Add(c.X, c.Y, pointsCount,
                     Math.Round(wcss, 2), Math.Round(wcss / pointsCount, 2),
@@ -460,6 +499,7 @@ namespace KMeansResearchTools
                 {
                     PointsDgv.Rows.Add(p.X, p.Y, string.Empty, string.Empty);
                 }
+
                 index++;
             }
         }
@@ -485,6 +525,8 @@ namespace KMeansResearchTools
 
         private void AddNewCentroidBtn_Click(object sender, EventArgs e)
         {
+            if (!points.Any()) return;
+
             if (!centroids.Any())
             {
                 centroids.Add(new CentroidData()
@@ -498,10 +540,12 @@ namespace KMeansResearchTools
                 var furthestPoint = Utilities.GetFurthestPointFromCentroids(centroids, points);
                 centroids.Add(new CentroidData()
                 {
-                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[rand.Next(colors.Count - centroids.Count)],
+                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[
+                        rand.Next(colors.Count - centroids.Count)],
                     Point = furthestPoint.Point
                 });
             }
+
             UpdateDataGridView();
             pictureBox1.Invalidate();
         }
@@ -550,6 +594,7 @@ namespace KMeansResearchTools
         private void CreateRandomPointsBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
+            elbowChartData.Clear();
             centroids.Clear();
             VCC = null;
             Random random = new Random();
@@ -559,6 +604,7 @@ namespace KMeansResearchTools
                 float y = (float)random.NextDouble() * pictureBox1.Height;
                 points.Add(new PointData { Point = new PointF(x, y), Color = Color.Black });
             }
+
             pictureBox1.Invalidate();
         }
 
@@ -571,7 +617,8 @@ namespace KMeansResearchTools
 
             foreach (DataGridViewRow row in dgv.Rows)
             {
-                if (row.Cells[columnName].Value == null || string.IsNullOrWhiteSpace(row.Cells[columnName].Value.ToString()))
+                if (row.Cells[columnName].Value == null ||
+                    string.IsNullOrWhiteSpace(row.Cells[columnName].Value.ToString()))
                 {
                     return false;
                 }
@@ -583,14 +630,15 @@ namespace KMeansResearchTools
         private void CreateCentralizedRandomPointsBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
+            elbowChartData.Clear();
             centroids.Clear();
             VCC = null;
             Random random = new Random();
 
             int numClusters = 4;
-            int pointsPerCluster = 5;  // Change this to control the number of points per cluster
-            float radius = 50;  // Change this to control the radius around each cluster center
-            int padding = 100;  // Padding from the edges of the PictureBox
+            int pointsPerCluster = 5; // Change this to control the number of points per cluster
+            float radius = 50; // Change this to control the radius around each cluster center
+            int padding = 100; // Padding from the edges of the PictureBox
 
             for (int i = 0; i < numClusters; i++)
             {
@@ -601,9 +649,11 @@ namespace KMeansResearchTools
                 // Generate points around the central point
                 for (int j = 0; j < pointsPerCluster; j++)
                 {
-                    double angle = random.NextDouble() * Math.PI * 2;  // Random angle
-                    float x = centerX + radius * (float)Math.Cos(angle);  // X position with respect to the radius and angle
-                    float y = centerY + radius * (float)Math.Sin(angle);  // Y position with respect to the radius and angle
+                    double angle = random.NextDouble() * Math.PI * 2; // Random angle
+                    float x = centerX +
+                              radius * (float)Math.Cos(angle); // X position with respect to the radius and angle
+                    float y = centerY +
+                              radius * (float)Math.Sin(angle); // Y position with respect to the radius and angle
 
                     // Ensure the points are within the PictureBox
                     x = Math.Max(0, Math.Min(pictureBox1.Width, x));
@@ -631,7 +681,8 @@ namespace KMeansResearchTools
                 var furthestPoint = Utilities.GetFurthestPointFromCentroids(centroids, points);
                 centroids.Add(new CentroidData()
                 {
-                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[rand.Next(colors.Count - centroids.Count)],
+                    Color = colors.Except(centroids.Select(c => c.Color)).ToArray()[
+                        rand.Next(colors.Count - centroids.Count)],
                     Point = furthestPoint.Point
                 });
             }
@@ -666,6 +717,77 @@ namespace KMeansResearchTools
             UpdateDataGridView();
             pictureBox1.Invalidate();
         }
+
+        private void UpdateElbowChart(double wcss, float sumOfDistances)
+        {
+            elbowChartData.Add(new ElbowChartData { WCSS = wcss, SumOfDistances = sumOfDistances });
+
+            elbowDgv.Rows.Clear();
+            foreach (var elbowChartDatum in elbowChartData)
+            {
+                elbowDgv.Rows.Add(centroids.Count, elbowChartDatum.WCSS, elbowChartDatum.SumOfDistances);
+            }
+
+            using (Graphics g = pictureBox2.CreateGraphics())
+            {
+                g.Clear(Color.White);
+
+                int padding = 40;
+
+                DrawGridAndAxes(g, padding);
+
+                float prevX = -1, prevYWCSS = -1, prevYSumOfDistances = -1;
+
+                for (int i = 0; i < elbowChartData.Count; i++)
+                {
+                    float x = ((i + 1) * (pictureBox2.Width - 2 * padding) / 10f) + padding;
+                    float yWCSS = pictureBox2.Height - padding - (float)((elbowChartData[i].WCSS ) / 10000f * (pictureBox2.Height - 2 * padding));
+                    float ySumOfDistances = pictureBox2.Height - padding - (float)((elbowChartData[i].SumOfDistances) / 10000f * (pictureBox2.Height - 2 * padding));
+
+                    g.FillEllipse(Brushes.Red, x - 5, yWCSS - 5, 10, 10); // WCSS
+                    g.FillEllipse(Brushes.Blue, x - 5, ySumOfDistances - 5, 10, 10); // SumOfDistances
+
+                    if (prevX != -1)
+                    {
+                        g.DrawLine(Pens.Red, prevX, prevYWCSS, x, yWCSS);
+                        g.DrawLine(Pens.Blue, prevX, prevYSumOfDistances, x, ySumOfDistances);
+                    }
+
+                    prevX = x;
+                    prevYWCSS = yWCSS;
+                    prevYSumOfDistances = ySumOfDistances;
+                }
+            }
+        }
+
+        private void DrawGridAndAxes(Graphics g, int padding)
+        {
+            // Define axis properties
+            Pen axisPen = Pens.Black;
+            Font axisFont = new Font("Arial", 10);
+            Brush axisBrush = Brushes.Black;
+            int arrowSize = 10;
+            int numberOfGridLines = 10;
+
+            // Draw x and y axes with arrows
+            g.DrawLine(axisPen, padding, pictureBox2.Height - padding, pictureBox2.Width - padding, pictureBox2.Height - padding); // X-axis
+            g.DrawLine(axisPen, padding, padding, padding, pictureBox2.Height - padding); // Y-axis
+
+            // Draw grid lines and axis labels
+            for (int i = 0; i <= numberOfGridLines; i++)
+            {
+                int x = i * (pictureBox2.Width - 2 * padding) / numberOfGridLines + padding;
+                int y = pictureBox2.Height - i * (pictureBox2.Height - 2 * padding) / numberOfGridLines - padding;
+
+                // Draw vertical grid line and x-axis label
+                g.DrawLine(Pens.LightGray, x, pictureBox2.Height - padding, x, padding);
+                g.DrawString((i).ToString(), axisFont, axisBrush, x, pictureBox2.Height - padding + (arrowSize / 2));
+
+                // Draw horizontal grid line and y-axis label
+                g.DrawLine(Pens.LightGray, padding, y, pictureBox2.Width - padding, y);
+                g.DrawString((10000 * i / numberOfGridLines).ToString(), axisFont, axisBrush, padding - (arrowSize * 2), y - axisFont.Height / 2);
+            }
+        }
     }
 
     public class PointData
@@ -674,7 +796,6 @@ namespace KMeansResearchTools
         public Color Color { get; set; }
         public CentroidData Centroid { get; set; }
         public Guid Id { get; set; }
-
         public PointData() => Id = Guid.NewGuid();
     }
 
@@ -685,6 +806,12 @@ namespace KMeansResearchTools
         public Guid Id { get; set; }
 
         public CentroidData() => Id = Guid.NewGuid();
+    }
+
+    public class ElbowChartData
+    {
+        public double WCSS { get; set; }
+        public float SumOfDistances { get; set; }
     }
 
     public static class Utilities
