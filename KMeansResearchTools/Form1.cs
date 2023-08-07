@@ -15,8 +15,7 @@ namespace KMeansResearchTools
         private List<PointData> points;
         private List<CentroidData> centroids;
         private CentroidData VCC;
-
-        List<Color> colors = new()
+        private List<Color> colors = new()
         {
             Color.DarkRed, Color.DarkBlue, Color.DarkGreen, Color.DarkOrange,
             Color.DarkViolet, Color.DarkCyan, Color.DarkMagenta, Color.DarkGray,
@@ -25,7 +24,6 @@ namespace KMeansResearchTools
             Color.IndianRed, Color.Maroon, Color.Navy, Color.MidnightBlue,
             Color.Chocolate, Color.SaddleBrown, Color.Indigo
         };
-
         private Random rand;
         private ToolTip toolTip;
         private bool isAddingPoints;
@@ -38,6 +36,14 @@ namespace KMeansResearchTools
         private double lambda = 5e-1;
         private double dimensiality = (1.0 / 2.0);
 
+
+        /// <summary>
+        /// The Form1 class is the main form and the entry point of your application.
+        /// It initializes the form, sets up the graphics, and handles user interaction
+        /// with the form (mouse clicks and mouse movements).
+        /// It also calculates and displays various information such as the within-cluster sum of squares (WCSS),
+        /// density factor, and distances between centroids and points.
+        /// </summary>
         public Form1()
         {
             InitializeComponent();
@@ -105,6 +111,13 @@ namespace KMeansResearchTools
             };
         }
 
+        /// <summary>
+        /// This function is called whenever the picture box needs to be repainted.
+        /// It is responsible for drawing all of the graphics on the form.
+        /// This includes the points, centroids, gridlines, axis, tooltips, and various text displays.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The paint event arguments.</param>
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -281,6 +294,12 @@ namespace KMeansResearchTools
             }
         }
 
+        /// <summary>
+        /// This function is called whenever the user clicks their mouse on the picture box.
+        /// It is responsible for handling the user's interaction with the form, such as adding and removing points and centroids.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The mouse event arguments.</param>
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
             // Translate the mouse coordinates
@@ -346,6 +365,12 @@ namespace KMeansResearchTools
             UpdateDataGridView();
         }
 
+        /// <summary>
+        /// This function is called whenever the user moves their mouse on the picture box.
+        /// It is responsible for displaying tooltips when the user hovers their mouse over a point or a centroid.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The mouse event arguments.</param>
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             string tooltipText = "";
@@ -376,7 +401,12 @@ namespace KMeansResearchTools
             toolTip.SetToolTip(pictureBox1, tooltipText);
         }
 
-
+        /// <summary>
+        /// This function is called when the user clicks the Clear button.
+        /// It is responsible for clearing all data and resetting the form to its initial state.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void ClearBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
@@ -391,7 +421,9 @@ namespace KMeansResearchTools
             UpdateDataGridView();
         }
 
-
+        /// <summary>
+        /// This function updates the virtual centroid of clusters (VCC) based on the current centroids.
+        /// </summary>
         private void UpdateVCC()
         {
             if (!centroids.Any())
@@ -407,6 +439,10 @@ namespace KMeansResearchTools
                 VCC.Point = new PointF(virtualCentroidX, virtualCentroidY);
         }
 
+        /// <summary>
+        /// This function updates the DataGrid view elements in the form.
+        /// It displays the current points and centroids, along with their associated data.
+        /// </summary>
         private void UpdateDataGridView()
         {
             // Clear existing rows
@@ -468,18 +504,36 @@ namespace KMeansResearchTools
             }
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Show Grid button.
+        /// It toggles the state of the grid in the picture box and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void ShowGridBtn_Click(object sender, EventArgs e)
         {
             showGrid = !showGrid;
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Show Connections button.
+        /// It toggles the state of the connections in the picture box and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void ShowConnectionsBtn_Click(object sender, EventArgs e)
         {
             showConnections = !showConnections;
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Associate Points button.
+        /// It associates each point with the closest centroid and updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void AssociatePointsBtn_Click(object sender, EventArgs e)
         {
             Utilities.AssociateToClosestCentroid(points, centroids);
@@ -487,6 +541,13 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Add New Centroid button.
+        /// It adds a new centroid at the location of a randomly selected point or the furthest point from existing centroids.
+        /// It then updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void AddNewCentroidBtn_Click(object sender, EventArgs e)
         {
             if (!points.Any()) return;
@@ -514,6 +575,12 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Optimize Centroid Position button.
+        /// It optimizes the positions of the centroids and updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void OptimizeCentroidPositionBtn_Click(object sender, EventArgs e)
         {
             Utilities.AssociateToClosestCentroid(points, centroids);
@@ -522,6 +589,13 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Full K-means button.
+        /// It performs the full K-means algorithm, including associating points to centroids and optimizing centroid positions.
+        /// It then updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void FullKmeanBtn_Click(object sender, EventArgs e)
         {
             var centroidsLocations = centroids.Select(c => c.Point).ToList();
@@ -541,6 +615,12 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Save Image button.
+        /// It saves the current image in the picture box to a file selected by the user.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void SaveImgBtn_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
@@ -555,6 +635,12 @@ namespace KMeansResearchTools
             }
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Create Random Points button.
+        /// It creates a set number of random points and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void CreateRandomPointsBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
@@ -572,6 +658,13 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function checks if a column in a DataGridView has any values.
+        /// It returns true if the column exists and all its cells have values, false otherwise.
+        /// </summary>
+        /// <param name="dgv">The DataGridView to check.</param>
+        /// <param name="columnName">The name of the column to check.</param>
+        /// <returns>A boolean indicating whether the column has any values.</returns>
         private bool DataGridViewColumnHasValues(DataGridView dgv, string columnName)
         {
             if (!dgv.Columns.Contains(columnName))
@@ -591,6 +684,12 @@ namespace KMeansResearchTools
             return true;
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Create Centralized Random Points button.
+        /// It creates a number of clusters of random points around central points and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void CreateCentralizedRandomPointsBtn_Click(object sender, EventArgs e)
         {
             points.Clear();
@@ -630,6 +729,13 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the New Centroid and Full K-mean button.
+        /// It adds a new centroid and performs the full K-means algorithm.
+        /// It then updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void NewCentroidAndFullKmeanBtn_Click(object sender, EventArgs e)
         {
             if (!points.Any()) return;
@@ -670,6 +776,12 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Show Virtual Centroid button.
+        /// It toggles the state of the virtual centroid in the picture box and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void ShowVirtualCCBtn_Click(object sender, EventArgs e)
         {
             showVCC = !showVCC;
@@ -677,6 +789,12 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Show Centroids Boundaries button.
+        /// It toggles the visibility of the centroids boundaries in the picture box and refreshes the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void ShowCentroidsBoundriesBtn_Click(object sender, EventArgs e)
         {
             ShowCentroidsBoundries = !ShowCentroidsBoundries;
@@ -684,6 +802,12 @@ namespace KMeansResearchTools
             pictureBox1.Invalidate();
         }
 
+        /// <summary>
+        /// This function updates the elbow chart with a new data point.
+        /// It then refreshes the elbow chart to reflect the new data.
+        /// </summary>
+        /// <param name="wcss">The within-cluster sum of squares for the new data point.</param>
+        /// <param name="sumOfDistances">The sum of distances for the new data point.</param>
         private void UpdateElbowChart(double wcss, float sumOfDistances)
         {
             if (!elbowChartData.Any(x => x.WCSS == wcss && sumOfDistances == sumOfDistances))
@@ -767,6 +891,11 @@ namespace KMeansResearchTools
 
         }
 
+        /// <summary>
+        /// This function draws the grid and axes for the elbow chart.
+        /// </summary>
+        /// <param name="g">The graphics object to draw on.</param>
+        /// <param name="padding">The padding around the grid and axes.</param>
         private void DrawGridAndAxes(Graphics g, int padding)
         {
             // Define axis properties
@@ -796,6 +925,13 @@ namespace KMeansResearchTools
             }
         }
 
+        /// <summary>
+        /// This function is called when the user clicks the Remove Centroid and Full K-mean button.
+        /// It removes the last centroid added, performs the full K-means algorithm, and updates the elbow chart.
+        /// It then updates the DataGrid view and the picture box.
+        /// </summary>
+        /// <param name="sender">The object that initiated the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void RemoveCentroidAndFullKmeanBtn_Click(object sender, EventArgs e)
         {
             if (!centroids.Any())
@@ -828,183 +964,6 @@ namespace KMeansResearchTools
             UpdateVCC();
             UpdateDataGridView();
             pictureBox1.Invalidate();
-        }
-    }
-
-    public class PointData
-    {
-        public PointF Point { get; set; }
-        public Color Color { get; set; }
-        public CentroidData Centroid { get; set; }
-        public Guid Id { get; set; }
-        public PointData() => Id = Guid.NewGuid();
-    }
-
-    public class CentroidData
-    {
-        public PointF Point { get; set; }
-        public Color Color { get; set; }
-        public Guid Id { get; set; }
-
-        public CentroidData() => Id = Guid.NewGuid();
-    }
-
-    public class ElbowChartData
-    {
-        public double WCSS { get; set; }
-        public float SumOfDistances { get; set; }
-        public int centroidsCount { get; set; }
-    }
-
-    public static class Utilities
-    {
-        public static PointF TranslatePoint(PointF originalPoint, int width, int height)
-        {
-            int padding = 20;
-            int axisLength = Math.Min(width, height) - 2 * padding;
-
-            float x = (originalPoint.X - padding) * 100 / axisLength;
-            float y = 100 - (originalPoint.Y - padding) * 100 / axisLength;
-
-            return new PointF((float)Math.Round(x), (float)Math.Round(y));
-        }
-
-        public static PointF ReverseTranslatePoint(PointF translatedPoint, int width, int height)
-        {
-            int padding = 20;
-            int axisLength = Math.Min(width, height) - 2 * padding;
-
-            float x = (translatedPoint.X * axisLength / 100) + padding;
-            float y = padding + (100 - translatedPoint.Y) * axisLength / 100;
-
-            return new PointF(x, y);
-        }
-
-        public static void AssociateToClosestCentroid(List<PointData> points, List<CentroidData> centroids)
-        {
-            foreach (var point in points)
-            {
-                CentroidData closestCentroid = null;
-                double minDistance = double.MaxValue;
-
-                foreach (var centroid in centroids)
-                {
-                    double distance = CalculateEuclideanDistance(point.Point, centroid.Point);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        closestCentroid = centroid;
-                    }
-                }
-
-                point.Centroid = closestCentroid;
-                point.Color = closestCentroid.Color;
-            }
-        }
-
-        public static double CalculateEuclideanDistance(PointF point1, PointF point2)
-        {
-            return Math.Sqrt(Math.Pow(point2.X - point1.X, 2) + Math.Pow(point2.Y - point1.Y, 2));
-        }
-
-        public static PointF CalculateCentroid(List<PointF> points)
-        {
-            float x = 0;
-            float y = 0;
-
-            foreach (var point in points)
-            {
-                x += point.X;
-                y += point.Y;
-            }
-
-            return new PointF(x / points.Count, y / points.Count);
-        }
-
-        public static PointF GetFurthestPoint(PointF startPoint, List<PointF> points)
-        {
-            PointF furthestPoint = new PointF();
-            double maxDistance = 0;
-
-            foreach (var point in points)
-            {
-                double distance = CalculateEuclideanDistance(startPoint, point);
-                if (distance > maxDistance)
-                {
-                    maxDistance = distance;
-                    furthestPoint = point;
-                }
-            }
-
-            return furthestPoint;
-        }
-
-        public static PointData GetFurthestPointFromCentroids(List<CentroidData> centroids, List<PointData> points)
-        {
-            PointData furthestPoint = null;
-            double maxDistance = 0;
-
-            foreach (var point in points)
-            {
-                double minDistanceToCentroid = double.MaxValue;
-
-                // Calculate the distance to the nearest centroid
-                foreach (var centroid in centroids)
-                {
-                    double distance = CalculateEuclideanDistance(point.Point, centroid.Point);
-                    if (distance < minDistanceToCentroid)
-                    {
-                        minDistanceToCentroid = distance;
-                    }
-                }
-
-                // If this point is further than our current furthest, update maxDistance and furthestPoint
-                if (minDistanceToCentroid > maxDistance)
-                {
-                    maxDistance = minDistanceToCentroid;
-                    furthestPoint = point;
-                }
-            }
-
-            return furthestPoint;
-        }
-
-        public static void OptimizeCentroidPosition(List<PointData> points, List<CentroidData> centroids)
-        {
-            foreach (var centroid in centroids)
-            {
-                var pointsForCentroid = points.Where(p => p.Centroid == centroid).ToList();
-                centroid.Point = CalculateCentroid(pointsForCentroid.Select(p => p.Point).ToList());
-            }
-        }
-
-        public static double CalculateWCSS(CentroidData centroid, List<PointData> points, int scaleWidth, int scaleHeight)
-        {
-            double wcss = 0;
-
-            // Filter the points that belong to the specified centroid
-            var clusteredPoints = points.Where(p => p.Centroid == centroid);
-
-            foreach (var point in clusteredPoints)
-            {
-                double distance = CalculateEuclideanDistance(
-                    TranslatePoint(point.Point, scaleWidth, scaleHeight),
-                    TranslatePoint(centroid.Point, scaleWidth, scaleHeight));
-                wcss += Math.Pow(distance, 2);
-            }
-
-            return wcss;
-        }
-
-        public static double CalculateDistance(PointData point1, PointData point2, int width, int height)
-        {
-            var p1 = TranslatePoint(point1.Point, width, height);
-            var p2 = TranslatePoint(point2.Point, width, height);
-
-            var dx = p1.X - p2.X;
-            var dy = p1.Y - p2.Y;
-
-            return Math.Sqrt(dx * dx + dy * dy);
         }
     }
 }
