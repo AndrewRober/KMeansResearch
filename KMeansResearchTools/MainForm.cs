@@ -10,7 +10,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace KMeansResearchTools
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private List<PointData> points;
         private List<CentroidData> centroids;
@@ -44,7 +44,7 @@ namespace KMeansResearchTools
         /// It also calculates and displays various information such as the within-cluster sum of squares (WCSS),
         /// density factor, and distances between centroids and points.
         /// </summary>
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
 
