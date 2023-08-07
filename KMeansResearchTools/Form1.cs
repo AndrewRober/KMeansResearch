@@ -35,6 +35,8 @@ namespace KMeansResearchTools
         private bool showVCC = true;
         private bool ShowCentroidsBoundries = true;
         private List<ElbowChartData> elbowChartData = new();
+        private double lambda = 5e-1;
+        private double dimensiality = (1.0 / 2.0);
 
         public Form1()
         {
@@ -53,6 +55,7 @@ namespace KMeansResearchTools
             elbowDgv.DataBindingComplete += (s, args) => elbowDgv.ClearSelection();
             elbowDgv.RowsAdded += (s, args) => elbowDgv.ClearSelection();
             elbowDgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            elbowDgv.RowHeadersVisible = false;
 
             PointsDgv.Columns.Add("X", "X");
             PointsDgv.Columns.Add("Y", "Y");
@@ -72,7 +75,7 @@ namespace KMeansResearchTools
             CentroidsDgv.Columns.Add("Kpn", "Kpn");
             CentroidsDgv.Columns.Add("SumDistancetoC", "Σ d(Pi, C)²");
             CentroidsDgv.Columns.Add("SumDistancetoCAvg", "Σ d(Pi, C)² / Kpn");
-            CentroidsDgv.Columns.Add("DensityFactor", "Density Factor ρ");
+            CentroidsDgv.Columns.Add("DensityFactor", "ρ");
             CentroidsDgv.Columns.Add("VCC", "VCC");
             CentroidsDgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             CentroidsDgv.DataBindingComplete += (s, args) => CentroidsDgv.ClearSelection();
@@ -214,10 +217,11 @@ namespace KMeansResearchTools
                     + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y)));
                 float sumOfSquaredDistances = translatedCentroids.Sum(c => (c.X - VCC.Point.X) * (c.X - VCC.Point.X)
                                                                            + (c.Y - VCC.Point.Y) * (c.Y - VCC.Point.Y));
+                double diff = (wcss / (lambda * densityFactor * dimensiality)) - (sumOfDistances + 4 * densityFactor / lambda);
 
                 // Draw WCSS, density factor ρ and sum of distances and sum of squared distances
                 string displayText =
-                    $"WCSS: {wcss:F2}\nDensity: {densityFactor:F2}\nDimensionality(1/d): {(1.0 / 2.0):F2}\nVirtual CC Sum Distances: {sumOfDistances:F2}\nVirtual CC Sum Squared Distances: {sumOfSquaredDistances:F2}";
+                    $"WCSS: {wcss:F2}\nDensity: {densityFactor:F2}\nDimensionality(1/d): {(1.0 / 2.0):F2}\nVirtual CC Sum Distances: {sumOfDistances:F2}\nVirtual CC Sum Squared Distances: {sumOfSquaredDistances:F2}\nλ: {lambda:F2}, 1/λ: {1/lambda:F2}, ρ: {densityFactor}, d: {dimensiality}\nΔ((WCSS/(λ*ρ*d)),Σd(C,VCC) + 4ρ/λ): {diff:F2}";
                 //SizeF textSize = e.Graphics.MeasureString(displayText, this.Font);
                 PointF textLocation = new PointF(70, 20);
                 e.Graphics.DrawString(displayText, this.Font, Brushes.Red, textLocation);
@@ -378,61 +382,21 @@ namespace KMeansResearchTools
             points.Clear();
             elbowChartData.Clear();
             centroids.Clear();
+            VCC = null;
+            elbowDgv.Rows.Clear();
+            CentroidsDgv.Rows.Clear();
+            PointsDgv.Rows.Clear();
             pictureBox1.Invalidate();
+            pictureBox2.Invalidate();
             UpdateDataGridView();
         }
 
-        private void SaveBtn_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "KMP files (*.kmp)|*.kmp";
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                Save(saveFileDialog.FileName, points, centroids);
-        }
-
-        private void LoadBtn_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "KMP files (*.kmp)|*.kmp";
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                Load(openFileDialog.FileName, out points, out centroids);
-                pictureBox1.Invalidate(); // Redraw the picture box
-            }
-        }
-
-        public void Save(string filePath, List<PointData> points, List<CentroidData> centroids)
-        {
-            // Create a dictionary to hold the points and centroids
-            var data = new Dictionary<string, object>
-            {
-                { "Points", points },
-                { "Centroids", centroids }
-            };
-
-            // Convert the dictionary to a JSON string
-            var jsonString = JsonSerializer.Serialize(data);
-
-            // Write the JSON string to the file
-            File.WriteAllText(filePath, jsonString);
-            UpdateDataGridView();
-        }
-
-        public void Load(string filePath, out List<PointData> points, out List<CentroidData> centroids)
-        {
-            // Read the JSON string from the file
-            var jsonString = File.ReadAllText(filePath);
-
-            // Convert the JSON string back to a dictionary
-            var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString);
-
-            points = JsonSerializer.Deserialize<List<PointData>>(data["Points"].ToString());
-            centroids = JsonSerializer.Deserialize<List<CentroidData>>(data["Centroids"].ToString());
-            UpdateDataGridView();
-        }
 
         private void UpdateVCC()
         {
+            if (!centroids.Any())
+                return;
+
             var virtualCentroidX = centroids.Average(c => c.Point.X);
             var virtualCentroidY = centroids.Average(c => c.Point.Y);
 
@@ -668,6 +632,8 @@ namespace KMeansResearchTools
 
         private void NewCentroidAndFullKmeanBtn_Click(object sender, EventArgs e)
         {
+            if (!points.Any()) return;
+
             if (!centroids.Any())
             {
                 centroids.Add(new CentroidData()
@@ -720,12 +686,13 @@ namespace KMeansResearchTools
 
         private void UpdateElbowChart(double wcss, float sumOfDistances)
         {
-            elbowChartData.Add(new ElbowChartData { WCSS = wcss, SumOfDistances = sumOfDistances });
+            if (!elbowChartData.Any(x => x.WCSS == wcss && sumOfDistances == sumOfDistances))
+                elbowChartData.Add(new ElbowChartData { centroidsCount = centroids.Count, WCSS = wcss, SumOfDistances = sumOfDistances });
 
             elbowDgv.Rows.Clear();
             foreach (var elbowChartDatum in elbowChartData)
             {
-                elbowDgv.Rows.Add(centroids.Count, elbowChartDatum.WCSS, elbowChartDatum.SumOfDistances);
+                elbowDgv.Rows.Add(elbowChartDatum.centroidsCount, elbowChartDatum.WCSS, elbowChartDatum.SumOfDistances);
             }
 
             using (Graphics g = pictureBox2.CreateGraphics())
@@ -741,7 +708,7 @@ namespace KMeansResearchTools
                 for (int i = 0; i < elbowChartData.Count; i++)
                 {
                     float x = ((i + 1) * (pictureBox2.Width - 2 * padding) / 10f) + padding;
-                    float yWCSS = pictureBox2.Height - padding - (float)((elbowChartData[i].WCSS ) / 10000f * (pictureBox2.Height - 2 * padding));
+                    float yWCSS = pictureBox2.Height - padding - (float)((elbowChartData[i].WCSS) / 10000f * (pictureBox2.Height - 2 * padding));
                     float ySumOfDistances = pictureBox2.Height - padding - (float)((elbowChartData[i].SumOfDistances) / 10000f * (pictureBox2.Height - 2 * padding));
 
                     g.FillEllipse(Brushes.Red, x - 5, yWCSS - 5, 10, 10); // WCSS
@@ -757,7 +724,47 @@ namespace KMeansResearchTools
                     prevYWCSS = yWCSS;
                     prevYSumOfDistances = ySumOfDistances;
                 }
+
+                Font axisFont = new Font("Arial", 10);
+
+                for (int i = 0; i < elbowChartData.Count - 1; i++)
+                {
+                    if (elbowChartData.Count > 1)
+                    {
+                        if ((elbowChartData[i].WCSS >= elbowChartData[i].SumOfDistances && elbowChartData[i + 1].WCSS <= elbowChartData[i + 1].SumOfDistances) ||
+                            (elbowChartData[i].WCSS <= elbowChartData[i].SumOfDistances && elbowChartData[i + 1].WCSS >= elbowChartData[i + 1].SumOfDistances))
+                        {
+                            // Calculate the intersection point
+                            float x1 = (i + 1) * (pictureBox2.Width - 2 * padding) / 10f + padding;
+                            float y1WCSS = pictureBox2.Height - padding - (float)((elbowChartData[i].WCSS) / 10000f * (pictureBox2.Height - 2 * padding));
+                            float y1SumOfDistances = pictureBox2.Height - padding - (float)((elbowChartData[i].SumOfDistances) / 10000f * (pictureBox2.Height - 2 * padding));
+                            float x2 = (i + 2) * (pictureBox2.Width - 2 * padding) / 10f + padding;
+                            float y2WCSS = pictureBox2.Height - padding - (float)((elbowChartData[i + 1].WCSS) / 10000f * (pictureBox2.Height - 2 * padding));
+                            float y2SumOfDistances = pictureBox2.Height - padding - (float)((elbowChartData[i + 1].SumOfDistances) / 10000f * (pictureBox2.Height - 2 * padding));
+
+                            float m1 = (y2WCSS - y1WCSS) / (x2 - x1); // Slope of the WCSS line
+                            float m2 = (y2SumOfDistances - y1SumOfDistances) / (x2 - x1); // Slope of the SumOfDistances line
+                            float c1 = y1WCSS - m1 * x1; // y-intercept of the WCSS line
+                            float c2 = y1SumOfDistances - m2 * x1; // y-intercept of the SumOfDistances line
+
+                            float intersectionX = (c2 - c1) / (m1 - m2);
+                            float intersectionY = m1 * intersectionX + c1;
+
+                            // Draw horizontal dashed red line
+                            Pen dashedRedPen = new Pen(Color.Red) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                            g.DrawLine(dashedRedPen, padding, intersectionY, pictureBox2.Width - padding, intersectionY);
+
+                            // Draw intersection values
+                            string labelText = $"\t\tCn: {elbowChartData[i + 1].centroidsCount}, WCSS = Σd(C,VCC) = {elbowChartData[i + 1].SumOfDistances}";
+                            g.DrawString(labelText, axisFont, Brushes.Red, intersectionX, intersectionY - 20);
+
+                            break; // Exit the loop
+                        }
+                    }
+                }
+
             }
+
         }
 
         private void DrawGridAndAxes(Graphics g, int padding)
@@ -788,6 +795,40 @@ namespace KMeansResearchTools
                 g.DrawString((10000 * i / numberOfGridLines).ToString(), axisFont, axisBrush, padding - (arrowSize * 2), y - axisFont.Height / 2);
             }
         }
+
+        private void RemoveCentroidAndFullKmeanBtn_Click(object sender, EventArgs e)
+        {
+            if (!centroids.Any())
+                return;
+
+            centroids.RemoveAt(centroids.Count - 1);
+            elbowChartData.Remove(elbowChartData.Last());
+            CentroidsDgv.Rows.RemoveAt(CentroidsDgv.Rows.Count - 1);
+
+            elbowDgv.Rows.Clear();
+            foreach (var elbowChartDatum in elbowChartData)
+            {
+                elbowDgv.Rows.Add(elbowChartDatum.centroidsCount, elbowChartDatum.WCSS,
+                    Math.Round(elbowChartDatum.SumOfDistances, 2));
+            }
+
+            var centroidsLocations = centroids.Select(c => c.Point).ToList();
+            var lastCentroidsLocations = new List<PointF>();
+
+            int limit = 50;
+
+            while (limit-- > 0 && !centroidsLocations.SequenceEqual(lastCentroidsLocations))
+            {
+                lastCentroidsLocations = new List<PointF>(centroidsLocations);
+                Utilities.AssociateToClosestCentroid(points, centroids);
+                Utilities.OptimizeCentroidPosition(points, centroids);
+                centroidsLocations = centroids.Select(c => c.Point).ToList();
+            }
+
+            UpdateVCC();
+            UpdateDataGridView();
+            pictureBox1.Invalidate();
+        }
     }
 
     public class PointData
@@ -812,6 +853,7 @@ namespace KMeansResearchTools
     {
         public double WCSS { get; set; }
         public float SumOfDistances { get; set; }
+        public int centroidsCount { get; set; }
     }
 
     public static class Utilities

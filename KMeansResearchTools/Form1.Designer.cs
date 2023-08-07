@@ -34,8 +34,6 @@
             statusStrip1 = new StatusStrip();
             lblCurrentMode = new ToolStripStatusLabel();
             ClearBtn = new Button();
-            SaveBtn = new Button();
-            LoadBtn = new Button();
             PointsDgv = new DataGridView();
             ShowGridBtn = new Button();
             ShowConnectionsBtn = new Button();
@@ -52,6 +50,7 @@
             ShowCentroidsBoundriesBtn = new Button();
             pictureBox2 = new PictureBox();
             elbowDgv = new DataGridView();
+            RemoveCentroidAndFullKmeanBtn = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PointsDgv).BeginInit();
@@ -106,35 +105,13 @@
             // ClearBtn
             // 
             ClearBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            ClearBtn.Location = new Point(1553, 682);
+            ClearBtn.Location = new Point(1612, 682);
             ClearBtn.Name = "ClearBtn";
             ClearBtn.Size = new Size(94, 29);
             ClearBtn.TabIndex = 4;
             ClearBtn.Text = "Clear";
             ClearBtn.UseVisualStyleBackColor = true;
             ClearBtn.Click += ClearBtn_Click;
-            // 
-            // SaveBtn
-            // 
-            SaveBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            SaveBtn.Location = new Point(1653, 682);
-            SaveBtn.Name = "SaveBtn";
-            SaveBtn.Size = new Size(94, 29);
-            SaveBtn.TabIndex = 5;
-            SaveBtn.Text = "Save";
-            SaveBtn.UseVisualStyleBackColor = true;
-            SaveBtn.Click += SaveBtn_Click;
-            // 
-            // LoadBtn
-            // 
-            LoadBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            LoadBtn.Location = new Point(1753, 682);
-            LoadBtn.Name = "LoadBtn";
-            LoadBtn.Size = new Size(94, 29);
-            LoadBtn.TabIndex = 6;
-            LoadBtn.Text = "Load";
-            LoadBtn.UseVisualStyleBackColor = true;
-            LoadBtn.Click += LoadBtn_Click;
             // 
             // PointsDgv
             // 
@@ -177,7 +154,7 @@
             // AssociatePointsBtn
             // 
             AssociatePointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            AssociatePointsBtn.Location = new Point(1174, 893);
+            AssociatePointsBtn.Location = new Point(1182, 854);
             AssociatePointsBtn.Name = "AssociatePointsBtn";
             AssociatePointsBtn.Size = new Size(129, 29);
             AssociatePointsBtn.TabIndex = 10;
@@ -188,7 +165,7 @@
             // AddNewCentroidBtn
             // 
             AddNewCentroidBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            AddNewCentroidBtn.Location = new Point(1315, 893);
+            AddNewCentroidBtn.Location = new Point(1323, 854);
             AddNewCentroidBtn.Name = "AddNewCentroidBtn";
             AddNewCentroidBtn.Size = new Size(204, 29);
             AddNewCentroidBtn.TabIndex = 11;
@@ -199,7 +176,7 @@
             // OptimizeCentroidPositionBtn
             // 
             OptimizeCentroidPositionBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            OptimizeCentroidPositionBtn.Location = new Point(1531, 893);
+            OptimizeCentroidPositionBtn.Location = new Point(1539, 854);
             OptimizeCentroidPositionBtn.Name = "OptimizeCentroidPositionBtn";
             OptimizeCentroidPositionBtn.Size = new Size(208, 29);
             OptimizeCentroidPositionBtn.TabIndex = 12;
@@ -220,13 +197,13 @@
             CentroidsDgv.ReadOnly = true;
             CentroidsDgv.RowHeadersWidth = 51;
             CentroidsDgv.RowTemplate.Height = 29;
-            CentroidsDgv.Size = new Size(759, 189);
+            CentroidsDgv.Size = new Size(626, 189);
             CentroidsDgv.TabIndex = 13;
             // 
             // FullKmeanBtn
             // 
             FullKmeanBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            FullKmeanBtn.Location = new Point(1751, 893);
+            FullKmeanBtn.Location = new Point(1759, 854);
             FullKmeanBtn.Name = "FullKmeanBtn";
             FullKmeanBtn.Size = new Size(94, 29);
             FullKmeanBtn.TabIndex = 14;
@@ -237,7 +214,7 @@
             // CreateRandomPointsBtn
             // 
             CreateRandomPointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            CreateRandomPointsBtn.Location = new Point(1174, 928);
+            CreateRandomPointsBtn.Location = new Point(1182, 889);
             CreateRandomPointsBtn.Name = "CreateRandomPointsBtn";
             CreateRandomPointsBtn.Size = new Size(174, 29);
             CreateRandomPointsBtn.TabIndex = 15;
@@ -248,7 +225,7 @@
             // SaveImgBtn
             // 
             SaveImgBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            SaveImgBtn.Location = new Point(1713, 717);
+            SaveImgBtn.Location = new Point(1713, 682);
             SaveImgBtn.Name = "SaveImgBtn";
             SaveImgBtn.Size = new Size(134, 29);
             SaveImgBtn.TabIndex = 16;
@@ -259,7 +236,7 @@
             // CreateCentralizedRandomPointsBtn
             // 
             CreateCentralizedRandomPointsBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            CreateCentralizedRandomPointsBtn.Location = new Point(1354, 928);
+            CreateCentralizedRandomPointsBtn.Location = new Point(1362, 889);
             CreateCentralizedRandomPointsBtn.Name = "CreateCentralizedRandomPointsBtn";
             CreateCentralizedRandomPointsBtn.Size = new Size(244, 29);
             CreateCentralizedRandomPointsBtn.TabIndex = 17;
@@ -270,7 +247,7 @@
             // NewCentroidAndFullKmeanBtn
             // 
             NewCentroidAndFullKmeanBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            NewCentroidAndFullKmeanBtn.Location = new Point(1604, 928);
+            NewCentroidAndFullKmeanBtn.Location = new Point(1612, 889);
             NewCentroidAndFullKmeanBtn.Name = "NewCentroidAndFullKmeanBtn";
             NewCentroidAndFullKmeanBtn.Size = new Size(243, 29);
             NewCentroidAndFullKmeanBtn.TabIndex = 18;
@@ -316,20 +293,32 @@
             elbowDgv.AllowUserToResizeColumns = false;
             elbowDgv.AllowUserToResizeRows = false;
             elbowDgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            elbowDgv.Location = new Point(777, 768);
+            elbowDgv.Location = new Point(644, 768);
             elbowDgv.MultiSelect = false;
             elbowDgv.Name = "elbowDgv";
             elbowDgv.ReadOnly = true;
             elbowDgv.RowHeadersWidth = 51;
             elbowDgv.RowTemplate.Height = 29;
-            elbowDgv.Size = new Size(384, 189);
+            elbowDgv.Size = new Size(517, 189);
             elbowDgv.TabIndex = 22;
+            // 
+            // RemoveCentroidAndFullKmeanBtn
+            // 
+            RemoveCentroidAndFullKmeanBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            RemoveCentroidAndFullKmeanBtn.Location = new Point(1575, 924);
+            RemoveCentroidAndFullKmeanBtn.Name = "RemoveCentroidAndFullKmeanBtn";
+            RemoveCentroidAndFullKmeanBtn.Size = new Size(280, 29);
+            RemoveCentroidAndFullKmeanBtn.TabIndex = 23;
+            RemoveCentroidAndFullKmeanBtn.Text = "Remove Centroid and FULL Kmean++";
+            RemoveCentroidAndFullKmeanBtn.UseVisualStyleBackColor = true;
+            RemoveCentroidAndFullKmeanBtn.Click += RemoveCentroidAndFullKmeanBtn_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1859, 982);
+            Controls.Add(RemoveCentroidAndFullKmeanBtn);
             Controls.Add(elbowDgv);
             Controls.Add(pictureBox2);
             Controls.Add(ShowCentroidsBoundriesBtn);
@@ -346,8 +335,6 @@
             Controls.Add(ShowConnectionsBtn);
             Controls.Add(ShowGridBtn);
             Controls.Add(PointsDgv);
-            Controls.Add(LoadBtn);
-            Controls.Add(SaveBtn);
             Controls.Add(ClearBtn);
             Controls.Add(statusStrip1);
             Controls.Add(btnAddCentroids);
@@ -376,8 +363,6 @@
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel lblCurrentMode;
         private Button ClearBtn;
-        private Button SaveBtn;
-        private Button LoadBtn;
         private DataGridView PointsDgv;
         private Button ShowGridBtn;
         private Button ShowConnectionsBtn;
@@ -394,5 +379,6 @@
         private Button ShowCentroidsBoundriesBtn;
         private PictureBox pictureBox2;
         private DataGridView elbowDgv;
+        private Button RemoveCentroidAndFullKmeanBtn;
     }
 }
